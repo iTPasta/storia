@@ -1,69 +1,51 @@
-# Welcome to your Lovable project
 
-## Project info
+# StorIA - Interactive Storytelling Robot for Kids
 
-**URL**: https://lovable.dev/projects/1d123129-f8ca-424a-89cf-8ea5009822fe
+StorIA is a web application featuring a cute robot that tells stories to children aged 5-7 years old. The robot displays different facial expressions that match the emotional tone of each story segment.
 
-## How can I edit this code?
+## Project Setup
 
-There are several ways of editing your application.
+1. Clone the repository
+2. Run `npm install` to install dependencies
+3. Run `npm run dev` to start the development server
 
-**Use Lovable**
+## Adding Robot Assets
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/1d123129-f8ca-424a-89cf-8ea5009822fe) and start prompting.
+### Robot Frame
+Add the robot frame image to the public folder:
+- Create a file named `robot_frame.png` in the `/public` folder
+- The robot frame should be a PNG image with a transparent center where the robot's face will appear
 
-Changes made via Lovable will be committed automatically to this repo.
+### Emotion GIFs
+Add the emotion GIF files to the `/public/emotions/` folder:
+- Create a folder named `emotions` in the `/public` directory
+- Add the following GIF files for different emotions:
+  - `happy.gif`
+  - `sad.gif`
+  - `surprised.gif`
+  - `angry.gif`
+  - `neutral.gif`
 
-**Use your preferred IDE**
+The emotion GIFs should be designed to fit within the robot's face area, with an offset of 50 pixels from all sides of the frame.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Features
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Robot with dynamic facial expressions
+- Text-to-speech narration of stories
+- Voice recognition for story selection
+- Pause and stop controls for the storytelling
+- Kid-friendly interface
 
-Follow these steps:
+## Adding More Stories
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+To add more stories, edit the `SAMPLE_STORIES` array in `src/components/StoryTeller.tsx`. Each story should have:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- A unique ID
+- A title
+- An array of segments, each with:
+  - Text content
+  - Associated emotion (happy, sad, surprised, angry, or neutral)
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Browser Compatibility
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/1d123129-f8ca-424a-89cf-8ea5009822fe) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+This application uses the Web Speech API for text-to-speech and speech recognition. These features may not be supported in all browsers. For best results, use Chrome or Edge.
