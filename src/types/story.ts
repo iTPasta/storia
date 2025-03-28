@@ -8,6 +8,8 @@ export interface StorySegment {
   text_fr: string;
   emotion: Emotion;
   sequence_order: number;
+  story_id?: string;
+  created_at?: string;
 }
 
 // Interface for a complete story
@@ -16,6 +18,7 @@ export interface Story {
   title: string;
   title_fr: string;
   segments?: StorySegment[];
+  created_at?: string;
 }
 
 // This sample data is kept for fallback if Supabase isn't available

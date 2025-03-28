@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Mic } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
-import { Story } from '@/types/story';
+import { Story, StorySegment, SAMPLE_STORIES } from '@/types/story';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Emotion } from '@/components/Robot';
 
 interface StorySearchProps {
   onStorySelect: (story: Story) => void;
@@ -21,6 +22,14 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
   const [isLoading, setIsLoading] = useState(false);
   const { language, t } = useLanguage();
   const { toast } = useToast();
+  
+  // Helper function to convert emotion string to Emotion type
+  const validateEmotion = (emotion: string): Emotion => {
+    const validEmotions: Emotion[] = ['happy', 'sad', 'surprised', 'angry', 'neutral'];
+    return validEmotions.includes(emotion as Emotion) 
+      ? (emotion as Emotion) 
+      : 'neutral';
+  };
   
   // Fetch stories from Supabase
   useEffect(() => {
@@ -45,13 +54,16 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
           description: t('Using fallback sample stories', 'Utilisation des histoires d\'exemple'),
           variant: 'destructive'
         });
+        
+        // Use sample stories as fallback
+        setStories(SAMPLE_STORIES);
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchStories();
-  }, [t]);
+  }, [t, toast]);
   
   const handleStoryRequest = async () => {
     const searchTerm = storySearch.toLowerCase();
@@ -63,7 +75,7 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
     if (foundStory) {
       try {
         // Fetch story segments
-        const { data: segments, error } = await supabase
+        const { data: segmentsData, error } = await supabase
           .from('story_segments')
           .select('*')
           .eq('story_id', foundStory.id)
@@ -71,12 +83,20 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
         
         if (error) throw error;
         
-        const completeStory = {
-          ...foundStory,
-          segments: segments || []
-        };
-        
-        onStorySelect(completeStory);
+        if (segmentsData) {
+          // Convert the segments to the correct type
+          const typedSegments: StorySegment[] = segmentsData.map(segment => ({
+            ...segment,
+            emotion: validateEmotion(segment.emotion)
+          }));
+          
+          const completeStory: Story = {
+            ...foundStory,
+            segments: typedSegments
+          };
+          
+          onStorySelect(completeStory);
+        }
       } catch (error) {
         console.error('Error fetching story segments:', error);
         toast({
