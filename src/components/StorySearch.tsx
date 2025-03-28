@@ -1,11 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Mic } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { Story } from '@/types/story';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface StorySearchProps {
   onStorySelect: (story: Story) => void;
@@ -14,46 +17,117 @@ interface StorySearchProps {
 
 const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStories }) => {
   const [storySearch, setStorySearch] = useState('');
+  const [stories, setStories] = useState<Story[]>(availableStories);
+  const [isLoading, setIsLoading] = useState(false);
+  const { language, t } = useLanguage();
+  const { toast } = useToast();
   
-  const handleStoryRequest = () => {
-    const foundStory = availableStories.find(story => 
-      story.title.toLowerCase().includes(storySearch.toLowerCase())
+  // Fetch stories from Supabase
+  useEffect(() => {
+    const fetchStories = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('stories')
+          .select('id, title, title_fr');
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          setStories(data);
+        }
+      } catch (error) {
+        console.error('Error fetching stories:', error);
+        toast({
+          title: t('Error fetching stories', 'Erreur lors de la récupération des histoires'),
+          description: t('Using fallback sample stories', 'Utilisation des histoires d\'exemple'),
+          variant: 'destructive'
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchStories();
+  }, [t]);
+  
+  const handleStoryRequest = async () => {
+    const searchTerm = storySearch.toLowerCase();
+    
+    const foundStory = stories.find(story => 
+      (language === 'en' ? story.title : story.title_fr).toLowerCase().includes(searchTerm)
     );
     
     if (foundStory) {
-      onStorySelect(foundStory);
+      try {
+        // Fetch story segments
+        const { data: segments, error } = await supabase
+          .from('story_segments')
+          .select('*')
+          .eq('story_id', foundStory.id)
+          .order('sequence_order', { ascending: true });
+        
+        if (error) throw error;
+        
+        const completeStory = {
+          ...foundStory,
+          segments: segments || []
+        };
+        
+        onStorySelect(completeStory);
+      } catch (error) {
+        console.error('Error fetching story segments:', error);
+        toast({
+          title: t('Error fetching story details', 'Erreur lors de la récupération des détails de l\'histoire'),
+          variant: 'destructive'
+        });
+        
+        // If we can't get segments from Supabase, try to use local sample
+        const fallbackStory = SAMPLE_STORIES.find(s => s.id === foundStory.id);
+        if (fallbackStory) {
+          onStorySelect(fallbackStory);
+        }
+      }
+    } else {
+      toast({
+        title: t('Story not found', 'Histoire non trouvée'),
+        description: t('Try another title', 'Essayez un autre titre'),
+        variant: 'destructive'
+      });
     }
   };
 
   const handleSearchResult = (transcript: string) => {
     setStorySearch(transcript);
     
-    // Auto-search after voice input
+    // Auto-search after voice input with a short delay
     setTimeout(() => {
-      const foundStory = availableStories.find(story => 
-        story.title.toLowerCase().includes(transcript.toLowerCase())
-      );
-      
-      if (foundStory) {
-        onStorySelect(foundStory);
-      }
+      setStorySearch(transcript);
+      handleStoryRequest();
     }, 1000);
   };
 
   const { isListening, startListening } = useSpeechRecognition({
-    onResult: handleSearchResult
+    onResult: handleSearchResult,
+    lang: language === 'en' ? 'en-US' : 'fr-FR'
   });
 
   return (
     <div className="flex flex-col items-center mt-8 w-full">
-      <p className="text-2xl mb-4 text-center">What story would you like to hear?</p>
+      <p className="text-2xl mb-4 text-center">
+        {t('What story would you like to hear?', 'Quelle histoire aimeriez-vous entendre?')}
+      </p>
       <p className="text-sm mb-6 text-muted-foreground text-center">
-        Try asking for "The Forest Adventure" or "Journey to the Stars"
+        {language === 'en' 
+          ? `Try asking for "${stories[0]?.title}" or "${stories[1]?.title}"`
+          : `Essayez de demander "${stories[0]?.title_fr}" ou "${stories[1]?.title_fr}"`}
       </p>
       
       <div className="story-input flex items-center gap-2">
         <Input
-          placeholder="Type a story name..."
+          placeholder={t('Type a story name...', 'Tapez un nom d\'histoire...')}
           value={storySearch}
           onChange={(e) => setStorySearch(e.target.value)}
           className="rounded-full text-lg py-6"
@@ -79,8 +153,9 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
       <Button
         onClick={handleStoryRequest}
         className="mt-4 bg-robot-primary hover:bg-robot-primary/80 text-lg py-6 px-8 rounded-full"
+        disabled={isLoading}
       >
-        Tell me this story!
+        {t('Tell me this story!', 'Raconte-moi cette histoire!')}
       </Button>
     </div>
   );

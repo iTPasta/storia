@@ -1,15 +1,20 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface UseSpeechRecognitionProps {
   onResult: (transcript: string) => void;
   lang?: string;
 }
 
-export const useSpeechRecognition = ({ onResult, lang = 'en-US' }: UseSpeechRecognitionProps) => {
+export const useSpeechRecognition = ({ onResult, lang }: UseSpeechRecognitionProps) => {
   const [isListening, setIsListening] = useState(false);
   const { toast } = useToast();
+  const { t, language } = useLanguage();
+  
+  // If no explicit language is provided, use the current app language
+  const recognitionLang = lang || (language === 'en' ? 'en-US' : 'fr-FR');
 
   const startListening = () => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
@@ -17,7 +22,7 @@ export const useSpeechRecognition = ({ onResult, lang = 'en-US' }: UseSpeechReco
       const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognitionAPI();
       
-      recognition.lang = lang;
+      recognition.lang = recognitionLang;
       recognition.interimResults = false;
       
       recognition.onresult = (event) => {
@@ -29,8 +34,8 @@ export const useSpeechRecognition = ({ onResult, lang = 'en-US' }: UseSpeechReco
       recognition.onerror = () => {
         setIsListening(false);
         toast({
-          title: "Voice recognition error",
-          description: "Please try again or type the story name",
+          title: t("Voice recognition error", "Erreur de reconnaissance vocale"),
+          description: t("Please try again or type the story name", "Veuillez réessayer ou taper le nom de l'histoire"),
           variant: "destructive"
         });
       };
@@ -43,8 +48,8 @@ export const useSpeechRecognition = ({ onResult, lang = 'en-US' }: UseSpeechReco
       recognition.start();
     } else {
       toast({
-        title: "Voice recognition not supported",
-        description: "Your browser doesn't support voice recognition",
+        title: t("Voice recognition not supported", "Reconnaissance vocale non prise en charge"),
+        description: t("Your browser doesn't support voice recognition", "Votre navigateur ne prend pas en charge la reconnaissance vocale"),
         variant: "destructive"
       });
     }

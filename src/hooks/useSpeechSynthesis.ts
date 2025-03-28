@@ -1,5 +1,6 @@
 
 import { useEffect, useRef } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface UseSpeechSynthesisProps {
   onEnd?: () => void;
@@ -13,11 +14,13 @@ export const useSpeechSynthesis = ({
   pitch = 1.2 
 }: UseSpeechSynthesisProps = {}) => {
   const speakRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const { language } = useLanguage();
   
   useEffect(() => {
     speakRef.current = new SpeechSynthesisUtterance();
-    speakRef.current.rate = rate; // Slightly slower for kids
-    speakRef.current.pitch = pitch; // Slightly higher pitch for a "cuter" voice
+    speakRef.current.rate = rate;
+    speakRef.current.pitch = pitch;
+    speakRef.current.lang = language === 'en' ? 'en-US' : 'fr-FR';
     
     if (onEnd) {
       speakRef.current.onend = onEnd;
@@ -29,11 +32,23 @@ export const useSpeechSynthesis = ({
         window.speechSynthesis.cancel();
       }
     };
-  }, [onEnd, rate, pitch]);
+  }, [onEnd, rate, pitch, language]);
 
   const speak = (text: string) => {
     if (speakRef.current) {
       speakRef.current.text = text;
+      // Try to find a voice that matches the current language
+      const voices = window.speechSynthesis.getVoices();
+      const languageCode = language === 'en' ? 'en' : 'fr';
+      
+      const matchingVoice = voices.find(voice => 
+        voice.lang.startsWith(languageCode) && !voice.localService
+      );
+      
+      if (matchingVoice) {
+        speakRef.current.voice = matchingVoice;
+      }
+      
       window.speechSynthesis.speak(speakRef.current);
     }
   };
