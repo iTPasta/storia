@@ -21,6 +21,7 @@ const StoryTeller: React.FC = () => {
   
   // Speech synthesis setup
   const handleSpeechEnd = () => {
+    console.log('Speech ended, moving to next segment');
     if (currentStory && currentStory.segments && currentSegmentIndex < currentStory.segments.length - 1) {
       setCurrentSegmentIndex(prev => prev + 1);
     } else {
@@ -36,22 +37,37 @@ const StoryTeller: React.FC = () => {
   useEffect(() => {
     if (currentStory && currentStory.segments && currentStory.segments[currentSegmentIndex]) {
       const segment = currentStory.segments[currentSegmentIndex];
-      setCurrentEmotion(segment.emotion);
+      setCurrentEmotion(segment.emotion as 'happy' | 'sad' | 'surprised' | 'angry' | 'neutral');
       
       // Use the appropriate language text
       const textContent = language === 'en' ? segment.text : segment.text_fr;
       setCurrentText(textContent);
       
       if (isPlaying) {
-        speak(textContent);
+        console.log('Speaking text:', textContent);
+        // Add a slight delay to ensure state updates have completed
+        setTimeout(() => {
+          speak(textContent);
+        }, 100);
       }
     }
-  }, [currentStory, currentSegmentIndex, isPlaying, language]);
+  }, [currentStory, currentSegmentIndex, isPlaying, language, speak]);
   
   // Reset to the current segment start when language changes
   useEffect(() => {
-    if (currentStory && !isPlaying) {
-      // Only reset if the story is not playing
+    if (currentStory && isPlaying) {
+      // If the story is playing and language changes, restart the current segment
+      cancel();
+      const segment = currentStory.segments?.[currentSegmentIndex];
+      if (segment) {
+        const textContent = language === 'en' ? segment.text : segment.text_fr;
+        setCurrentText(textContent);
+        setTimeout(() => {
+          speak(textContent);
+        }, 100);
+      }
+    } else if (currentStory) {
+      // Only update text if not playing
       cancel();
       const segment = currentStory.segments?.[currentSegmentIndex];
       if (segment) {
@@ -59,7 +75,7 @@ const StoryTeller: React.FC = () => {
         setCurrentText(textContent);
       }
     }
-  }, [language, currentStory, currentSegmentIndex, isPlaying, cancel]);
+  }, [language, currentStory, currentSegmentIndex, isPlaying, cancel, speak]);
   
   // Handle story selection
   const handleStorySelect = (story: Story) => {
@@ -76,7 +92,10 @@ const StoryTeller: React.FC = () => {
     if (currentStory && currentStory.segments && currentStory.segments[currentSegmentIndex]) {
       const segment = currentStory.segments[currentSegmentIndex];
       const textContent = language === 'en' ? segment.text : segment.text_fr;
-      speak(textContent);
+      console.log('Playing story, speaking:', textContent);
+      setTimeout(() => {
+        speak(textContent);
+      }, 100);
     }
   };
   

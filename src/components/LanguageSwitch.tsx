@@ -12,6 +12,7 @@ const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ disabled = false }) => 
   const { language, setLanguage, t } = useLanguage();
   
   const handleToggle = (checked: boolean) => {
+    if (disabled) return;
     setLanguage(checked ? 'fr' : 'en');
   };
 
@@ -25,6 +26,7 @@ const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ disabled = false }) => 
         checked={language === 'fr'}
         onCheckedChange={handleToggle}
         disabled={disabled}
+        aria-disabled={disabled}
       />
       <Label htmlFor="language-switch" className={`text-sm font-medium ${disabled ? 'opacity-50' : ''}`}>
         {t('French', 'Français')}

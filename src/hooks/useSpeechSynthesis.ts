@@ -29,14 +29,18 @@ export const useSpeechSynthesis = ({
   }, [language, onEnd, rate, pitch]);
   
   useEffect(() => {
-    setupUtterance();
-    
-    return () => {
-      if (speakRef.current) {
-        speakRef.current.onend = null;
-        window.speechSynthesis.cancel();
-      }
-    };
+    // Initialize speech synthesis
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      setupUtterance();
+      
+      // Make sure we clean up to prevent memory leaks
+      return () => {
+        if (speakRef.current) {
+          speakRef.current.onend = null;
+          window.speechSynthesis.cancel();
+        }
+      };
+    }
   }, [setupUtterance]);
 
   // Recreate the utterance when language changes
@@ -47,6 +51,12 @@ export const useSpeechSynthesis = ({
   }, [language]);
 
   const speak = useCallback((text: string) => {
+    // Make sure speechSynthesis is available
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+      console.error('Speech synthesis not available');
+      return;
+    }
+    
     // Ensure we cancel any ongoing speech first
     window.speechSynthesis.cancel();
     
@@ -57,28 +67,46 @@ export const useSpeechSynthesis = ({
       const voices = window.speechSynthesis.getVoices();
       const languageCode = language === 'en' ? 'en' : 'fr';
       
-      const matchingVoice = voices.find(voice => 
+      // First try to find a non-local service voice with exact language match
+      let matchingVoice = voices.find(voice => 
         voice.lang.startsWith(languageCode) && !voice.localService
       );
       
+      // If no matching non-local voice, try any voice with the language
+      if (!matchingVoice) {
+        matchingVoice = voices.find(voice => 
+          voice.lang.startsWith(languageCode)
+        );
+      }
+      
+      // If we found a matching voice, use it
       if (matchingVoice) {
         speakRef.current.voice = matchingVoice;
       }
       
-      window.speechSynthesis.speak(speakRef.current);
+      // Let's add a delay to make sure the speech synthesis is ready
+      setTimeout(() => {
+        window.speechSynthesis.speak(speakRef.current);
+      }, 100);
     }
   }, [language]);
 
   const pause = useCallback(() => {
-    window.speechSynthesis.pause();
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.pause();
+    }
   }, []);
 
   const resume = useCallback(() => {
-    window.speechSynthesis.resume();
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.resume();
+    }
   }, []);
 
   const cancel = useCallback(() => {
-    window.speechSynthesis.cancel();
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
   }, []);
 
   return {
