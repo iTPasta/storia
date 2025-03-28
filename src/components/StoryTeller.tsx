@@ -48,6 +48,19 @@ const StoryTeller: React.FC = () => {
     }
   }, [currentStory, currentSegmentIndex, isPlaying, language]);
   
+  // Reset to the current segment start when language changes
+  useEffect(() => {
+    if (currentStory && !isPlaying) {
+      // Only reset if the story is not playing
+      cancel();
+      const segment = currentStory.segments?.[currentSegmentIndex];
+      if (segment) {
+        const textContent = language === 'en' ? segment.text : segment.text_fr;
+        setCurrentText(textContent);
+      }
+    }
+  }, [language, currentStory, currentSegmentIndex, isPlaying, cancel]);
+  
   // Handle story selection
   const handleStorySelect = (story: Story) => {
     setCurrentStory(story);
@@ -58,6 +71,13 @@ const StoryTeller: React.FC = () => {
   // Playback controls
   const playStory = () => {
     setIsPlaying(true);
+    // Reset and start from the beginning of the current segment when resuming
+    cancel();
+    if (currentStory && currentStory.segments && currentStory.segments[currentSegmentIndex]) {
+      const segment = currentStory.segments[currentSegmentIndex];
+      const textContent = language === 'en' ? segment.text : segment.text_fr;
+      speak(textContent);
+    }
   };
   
   const pauseStory = () => {
@@ -75,7 +95,7 @@ const StoryTeller: React.FC = () => {
     <div className="flex flex-col items-center justify-center w-full max-w-3xl mx-auto p-4">
       <div className="w-full flex justify-between items-center mb-6">
         <h1 className="text-4xl font-bold text-primary">StorIA</h1>
-        <LanguageSwitch />
+        <LanguageSwitch disabled={isPlaying} />
       </div>
       
       <Robot emotion={currentEmotion} isPlaying={isPlaying} />

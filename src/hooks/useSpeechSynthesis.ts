@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface UseSpeechSynthesisProps {
@@ -16,7 +16,8 @@ export const useSpeechSynthesis = ({
   const speakRef = useRef<SpeechSynthesisUtterance | null>(null);
   const { language } = useLanguage();
   
-  useEffect(() => {
+  // Set up the utterance with the correct language
+  const setupUtterance = useCallback(() => {
     speakRef.current = new SpeechSynthesisUtterance();
     speakRef.current.rate = rate;
     speakRef.current.pitch = pitch;
@@ -25,6 +26,10 @@ export const useSpeechSynthesis = ({
     if (onEnd) {
       speakRef.current.onend = onEnd;
     }
+  }, [language, onEnd, rate, pitch]);
+  
+  useEffect(() => {
+    setupUtterance();
     
     return () => {
       if (speakRef.current) {
@@ -32,11 +37,22 @@ export const useSpeechSynthesis = ({
         window.speechSynthesis.cancel();
       }
     };
-  }, [onEnd, rate, pitch, language]);
+  }, [setupUtterance]);
 
-  const speak = (text: string) => {
+  // Recreate the utterance when language changes
+  useEffect(() => {
+    if (speakRef.current) {
+      speakRef.current.lang = language === 'en' ? 'en-US' : 'fr-FR';
+    }
+  }, [language]);
+
+  const speak = useCallback((text: string) => {
+    // Ensure we cancel any ongoing speech first
+    window.speechSynthesis.cancel();
+    
     if (speakRef.current) {
       speakRef.current.text = text;
+      
       // Try to find a voice that matches the current language
       const voices = window.speechSynthesis.getVoices();
       const languageCode = language === 'en' ? 'en' : 'fr';
@@ -51,19 +67,19 @@ export const useSpeechSynthesis = ({
       
       window.speechSynthesis.speak(speakRef.current);
     }
-  };
+  }, [language]);
 
-  const pause = () => {
+  const pause = useCallback(() => {
     window.speechSynthesis.pause();
-  };
+  }, []);
 
-  const resume = () => {
+  const resume = useCallback(() => {
     window.speechSynthesis.resume();
-  };
+  }, []);
 
-  const cancel = () => {
+  const cancel = useCallback(() => {
     window.speechSynthesis.cancel();
-  };
+  }, []);
 
   return {
     speak,
