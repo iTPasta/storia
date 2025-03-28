@@ -147,8 +147,9 @@ const StoryTeller: React.FC = () => {
   // Speech recognition for story request
   const startListening = () => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
+      // Use the appropriate SpeechRecognition constructor
+      const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognitionAPI();
       
       recognition.lang = 'en-US';
       recognition.interimResults = false;
