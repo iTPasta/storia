@@ -17,7 +17,7 @@ interface VoiceSelectorProps {
 // Recommended voices for each language
 const RECOMMENDED_VOICES = {
   en: ['English (Great Britain)+croak'],
-  fr: ['French (France)+male4']
+  fr: ['French (France)+male4', 'French (Switzerland)+Zac']
 };
 
 const VoiceSelector: React.FC<VoiceSelectorProps> = ({ disabled = false }) => {
@@ -32,25 +32,25 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ disabled = false }) => {
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         const voices = window.speechSynthesis.getVoices();
         const languageCode = language === 'en' ? 'en' : 'fr';
-        
+
         // Filter voices for the current language
-        const languageVoices = voices.filter(voice => 
+        const languageVoices = voices.filter(voice =>
           voice.lang.startsWith(languageCode)
         );
-        
+
         // Separate recommended voices from other voices
-        const recommended = languageVoices.filter(voice => 
-          RECOMMENDED_VOICES[language]?.includes(voice.voiceURI)
+        const recommended = languageVoices.filter(voice =>
+          RECOMMENDED_VOICES[language]?.includes(voice.name)
         );
-        
-        const others = languageVoices.filter(voice => 
-          !RECOMMENDED_VOICES[language]?.includes(voice.voiceURI)
+
+        const others = languageVoices.filter(voice =>
+          !RECOMMENDED_VOICES[language]?.includes(voice.name)
         );
-        
+
         setRecommendedVoices(recommended);
         setOtherVoices(others);
         setAvailableVoices(languageVoices);
-        
+
         // If we have a saved voice for this language, use it
         const savedVoice = localStorage.getItem(`story-voice-${language}`);
         if (savedVoice && languageVoices.some(v => v.voiceURI === savedVoice)) {
@@ -85,9 +85,9 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ disabled = false }) => {
   return (
     <div className="space-y-2">
       <Label htmlFor="voice-select">{t('Voice', 'Voix')}</Label>
-      <Select 
-        value={selectedVoice || ''} 
-        onValueChange={setSelectedVoice} 
+      <Select
+        value={selectedVoice || ''}
+        onValueChange={setSelectedVoice}
         disabled={disabled}
       >
         <SelectTrigger id="voice-select">
@@ -107,14 +107,14 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ disabled = false }) => {
               {otherVoices.length > 0 && <div className="h-px bg-gray-200 my-1" />}
             </>
           )}
-          
+
           {/* Display other voices */}
           {otherVoices.map((voice) => (
             <SelectItem key={voice.voiceURI} value={voice.voiceURI}>
               {voice.name}
             </SelectItem>
           ))}
-          
+
           {availableVoices.length === 0 && (
             <SelectItem value="none" disabled>
               {t('No voices available', 'Aucune voix disponible')}
