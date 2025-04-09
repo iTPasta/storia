@@ -4,17 +4,13 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 interface UseSpeechSynthesisProps {
   onEnd?: () => void;
-  rate?: number;
-  pitch?: number;
 }
 
 export const useSpeechSynthesis = ({
   onEnd,
-  rate = 0.85,
-  pitch = 1.2
 }: UseSpeechSynthesisProps = {}) => {
   const speakRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const { language, selectedVoice } = useLanguage();
+  const { language, selectedVoice, rate, pitch } = useLanguage();
 
   // Set up the utterance with the correct language
   const setupUtterance = useCallback(() => {
@@ -47,8 +43,10 @@ export const useSpeechSynthesis = ({
   useEffect(() => {
     if (speakRef.current) {
       speakRef.current.lang = language === 'en' ? 'en-US' : 'fr-FR';
+      speakRef.current.rate = rate;
+      speakRef.current.pitch = pitch;
     }
-  }, [language]);
+  }, [language, rate, pitch]);
 
   const speak = useCallback((text: string) => {
     // Make sure speechSynthesis is available
@@ -62,6 +60,8 @@ export const useSpeechSynthesis = ({
 
     if (speakRef.current) {
       speakRef.current.text = text;
+      speakRef.current.rate = rate;
+      speakRef.current.pitch = pitch;
 
       // Try to find the selected voice or a suitable fallback
       const voices = window.speechSynthesis.getVoices();
@@ -106,7 +106,7 @@ export const useSpeechSynthesis = ({
         window.speechSynthesis.speak(speakRef.current);
       }, 100);
     }
-  }, [language, selectedVoice]);
+  }, [language, selectedVoice, rate, pitch]);
 
   const pause = useCallback(() => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Slider } from '@/components/ui/slider';
 
 interface SpeechVoice {
   name: string;
@@ -21,7 +22,7 @@ const RECOMMENDED_VOICES = {
 };
 
 const VoiceSelector: React.FC<VoiceSelectorProps> = ({ disabled = false }) => {
-  const { language, t, selectedVoice, setSelectedVoice } = useLanguage();
+  const { language, t, selectedVoice, setSelectedVoice, rate, setRate, pitch, setPitch } = useLanguage();
   const [availableVoices, setAvailableVoices] = useState<SpeechVoice[]>([]);
   const [recommendedVoices, setRecommendedVoices] = useState<SpeechVoice[]>([]);
   const [otherVoices, setOtherVoices] = useState<SpeechVoice[]>([]);
@@ -83,45 +84,89 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ disabled = false }) => {
   }, [language, setSelectedVoice]);
 
   return (
-    <div className="space-y-2">
-      <Label htmlFor="voice-select">{t('Voice', 'Voix')}</Label>
-      <Select
-        value={selectedVoice || ''}
-        onValueChange={setSelectedVoice}
-        disabled={disabled}
-      >
-        <SelectTrigger id="voice-select">
-          <SelectValue placeholder={t('Select a voice', 'Choisir une voix')} />
-        </SelectTrigger>
-        <SelectContent>
-          {/* Display recommended voices first */}
-          {recommendedVoices.length > 0 && (
-            <>
-              {recommendedVoices.map((voice) => (
-                <SelectItem key={voice.voiceURI} value={voice.voiceURI} className="flex items-center">
-                  <div>{voice.name} <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-                    {t('Recommended', 'Recommandée')}
-                  </span></div>
-                </SelectItem>
-              ))}
-              {otherVoices.length > 0 && <div className="h-px bg-gray-200 my-1" />}
-            </>
-          )}
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="voice-select">{t('Voice', 'Voix')}</Label>
+        <Select
+          value={selectedVoice || ''}
+          onValueChange={setSelectedVoice}
+          disabled={disabled}
+        >
+          <SelectTrigger id="voice-select">
+            <SelectValue placeholder={t('Select a voice', 'Choisir une voix')} />
+          </SelectTrigger>
+          <SelectContent>
+            {/* Display recommended voices first */}
+            {recommendedVoices.length > 0 && (
+              <>
+                {recommendedVoices.map((voice) => (
+                  <SelectItem key={voice.voiceURI} value={voice.voiceURI} className="flex items-center">
+                    <div>{voice.name} <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                      {t('Recommended', 'Recommandée')}
+                    </span></div>
+                  </SelectItem>
+                ))}
+                {otherVoices.length > 0 && <div className="h-px bg-gray-200 my-1" />}
+              </>
+            )}
 
-          {/* Display other voices */}
-          {otherVoices.map((voice) => (
-            <SelectItem key={voice.voiceURI} value={voice.voiceURI}>
-              {voice.name}
-            </SelectItem>
-          ))}
+            {/* Display other voices */}
+            {otherVoices.map((voice) => (
+              <SelectItem key={voice.voiceURI} value={voice.voiceURI}>
+                {voice.name}
+              </SelectItem>
+            ))}
 
-          {availableVoices.length === 0 && (
-            <SelectItem value="none" disabled>
-              {t('No voices available', 'Aucune voix disponible')}
-            </SelectItem>
-          )}
-        </SelectContent>
-      </Select>
+            {availableVoices.length === 0 && (
+              <SelectItem value="none" disabled>
+                {t('No voices available', 'Aucune voix disponible')}
+              </SelectItem>
+            )}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {/* Speech Rate Slider */}
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <Label htmlFor="rate-slider">{t('Speech Rate', 'Vitesse de parole')}</Label>
+          <span className="text-sm text-muted-foreground">{rate.toFixed(1)}</span>
+        </div>
+        <Slider
+          id="rate-slider"
+          min={0.1}
+          max={2.0}
+          step={0.1}
+          value={[rate]}
+          onValueChange={(values) => {
+            setRate(values[0]);
+            localStorage.setItem('speech-rate', values[0].toString());
+          }}
+          disabled={disabled}
+          className="py-2"
+        />
+      </div>
+      
+      {/* Speech Pitch Slider */}
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <Label htmlFor="pitch-slider">{t('Speech Pitch', 'Hauteur de voix')}</Label>
+          <span className="text-sm text-muted-foreground">{pitch.toFixed(1)}</span>
+        </div>
+        <Slider
+          id="pitch-slider"
+          min={0.1}
+          max={2.0}
+          step={0.1}
+          value={[pitch]}
+          onValueChange={(values) => {
+            setPitch(values[0]);
+            localStorage.setItem('speech-pitch', values[0].toString());
+          }}
+          disabled={disabled}
+          className="py-2"
+        />
+      </div>
     </div>
   );
 };

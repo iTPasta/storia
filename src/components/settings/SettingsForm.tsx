@@ -16,7 +16,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ disabled = false }) => {
       {/* Language Switch */}
       <LanguageSwitch disabled={disabled} />
       
-      {/* Voice Selection */}
+      {/* Voice Selection, Rate and Pitch */}
       <VoiceSelector disabled={disabled} />
     </div>
   );
