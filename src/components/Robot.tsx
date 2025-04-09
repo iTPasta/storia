@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils'; // Ensure this utility function is correctly implemented or replace it with a classNames library.
 
 // Emotion types
 export type Emotion = 'happy' | 'sad' | 'surprised' | 'angry' | 'neutral';
@@ -13,11 +13,11 @@ interface RobotProps {
 
 // Define emotion images
 const emotionImages: Record<Emotion, string> = {
-  happy: '/emotions/qt_happy.gif',
-  sad: '/emotions/qt_cry.gif',
-  surprised: '/emotions/qt_confused.gif',
-  angry: '/emotions/qt_angry.gif',
-  neutral: '/emotions/qt_neutral.gif',
+  happy: '/emotions/qt_happy_framed.gif', // Ensure the paths are correct relative to the folder
+  sad: '/emotions/qt_cry_framed.gif',
+  surprised: '/emotions/qt_confused_framed.gif',
+  angry: '/emotions/qt_angry_framed.gif',
+  neutral: '/emotions/qt_neutral_framed.gif',
 };
 
 const Robot: React.FC<RobotProps> = ({
@@ -32,6 +32,8 @@ const Robot: React.FC<RobotProps> = ({
     setCurrentEmotion(emotion);
   }, [emotion]);
 
+  console.log(emotion, isPlaying);
+
   return (
     <div className={cn("robot-container relative", className)}>
       <div className="robot-face">
@@ -42,27 +44,9 @@ const Robot: React.FC<RobotProps> = ({
           className={cn(
             "w-full h-full object-contain",
             isPlaying && currentEmotion === 'happy' && "animate-bounce",
-            isPlaying && "animate-pulse"
           )}
         />
       </div>
-      
-      {/* The frame image goes after the face to overlay properly */}
-      <img
-        src="/qt_frame.png"
-        alt="Robot frame"
-        className="robot-frame absolute top-0 left-0 w-full h-full object-contain z-10"
-      />
-      
-      {isPlaying && (
-        <div className="speaking-indicator absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
-          <div className="flex space-x-1">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping" style={{ animationDelay: "300ms" }}></div>
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping" style={{ animationDelay: "600ms" }}></div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -15,10 +15,10 @@ const StoryTeller: React.FC = () => {
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
   const [currentEmotion, setCurrentEmotion] = useState<'happy' | 'sad' | 'surprised' | 'angry' | 'neutral'>('neutral');
   const [currentText, setCurrentText] = useState('');
-  
+
   const { toast } = useToast();
   const { language } = useLanguage();
-  
+
   // Speech synthesis setup
   const handleSpeechEnd = () => {
     console.log('Speech ended, moving to next segment');
@@ -28,21 +28,21 @@ const StoryTeller: React.FC = () => {
       stopStory();
     }
   };
-  
+
   const { speak, pause, cancel } = useSpeechSynthesis({
     onEnd: handleSpeechEnd
   });
-  
+
   // Update emotion and text when segment changes
   useEffect(() => {
     if (currentStory && currentStory.segments && currentStory.segments[currentSegmentIndex]) {
       const segment = currentStory.segments[currentSegmentIndex];
       setCurrentEmotion(segment.emotion as 'happy' | 'sad' | 'surprised' | 'angry' | 'neutral');
-      
+
       // Use the appropriate language text
       const textContent = language === 'en' ? segment.text : segment.text_fr;
       setCurrentText(textContent);
-      
+
       if (isPlaying) {
         console.log('Speaking text:', textContent);
         // Add a slight delay to ensure state updates have completed
@@ -52,7 +52,7 @@ const StoryTeller: React.FC = () => {
       }
     }
   }, [currentStory, currentSegmentIndex, isPlaying, language, speak]);
-  
+
   // Reset to the current segment start when language changes
   useEffect(() => {
     if (currentStory && isPlaying) {
@@ -76,14 +76,14 @@ const StoryTeller: React.FC = () => {
       }
     }
   }, [language, currentStory, currentSegmentIndex, isPlaying, cancel, speak]);
-  
+
   // Handle story selection
   const handleStorySelect = (story: Story) => {
     setCurrentStory(story);
     setCurrentSegmentIndex(0);
     setIsPlaying(true);
   };
-  
+
   // Playback controls
   const playStory = () => {
     setIsPlaying(true);
@@ -98,42 +98,49 @@ const StoryTeller: React.FC = () => {
       }, 100);
     }
   };
-  
+
   const pauseStory = () => {
     setIsPlaying(false);
     pause();
   };
-  
+
   const stopStory = () => {
     setIsPlaying(false);
     setCurrentSegmentIndex(0);
+    setCurrentStory(null);
     cancel();
   };
-  
+
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-3xl mx-auto p-4">
-      <div className="w-full flex justify-between items-center mb-6">
-        <h1 className="text-4xl font-bold text-primary">StorIA</h1>
-        <LanguageSwitch disabled={isPlaying} />
+    <>
+      <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto p-4">
+        <div className="w-full flex justify-between items-center mb-6">
+          <h1 className="text-4xl font-bold text-primary">StorIA</h1>
+          <LanguageSwitch disabled={isPlaying} />
+        </div>
       </div>
-      
-      <Robot emotion={currentEmotion} isPlaying={isPlaying} />
-      
-      {currentStory ? (
-        <StoryPlayer
-          currentText={currentText}
-          isPlaying={isPlaying}
-          onPlay={playStory}
-          onPause={pauseStory}
-          onStop={stopStory}
-        />
-      ) : (
-        <StorySearch 
-          onStorySelect={handleStorySelect}
-          availableStories={SAMPLE_STORIES}
-        />
-      )}
-    </div>
+      <div className="w-full flex">
+        <div className="flex-1">
+          {currentStory ? (
+            <StoryPlayer
+              currentText={currentText}
+              isPlaying={isPlaying}
+              onPlay={playStory}
+              onPause={pauseStory}
+              onStop={stopStory}
+            />
+          ) : (
+            <StorySearch
+              onStorySelect={handleStorySelect}
+              availableStories={SAMPLE_STORIES}
+            />
+          )}
+        </div>
+        <div className="ml-4">
+          <Robot emotion={currentEmotion} isPlaying={isPlaying} />
+        </div>
+      </div>
+    </>
   );
 };
 
