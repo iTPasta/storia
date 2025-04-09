@@ -4,10 +4,10 @@ import { useToast } from '@/components/ui/use-toast';
 import Robot from './Robot';
 import StorySearch from './StorySearch';
 import StoryPlayer from './StoryPlayer';
+import SettingsDialog from './SettingsDialog';
 import { Story, SAMPLE_STORIES } from '@/types/story';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 import { useLanguage } from '@/contexts/LanguageContext';
-import LanguageSwitch from './LanguageSwitch';
 
 const StoryTeller: React.FC = () => {
   const [currentStory, setCurrentStory] = useState<Story | null>(null);
@@ -85,7 +85,7 @@ const StoryTeller: React.FC = () => {
       <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto p-4">
         <div className="w-full flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold text-primary">StorIA</h1>
-          <LanguageSwitch disabled={isPlaying} />
+          <SettingsDialog disabled={isPlaying} />
         </div>
       </div>
       <div className="w-full flex">
