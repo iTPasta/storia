@@ -33,7 +33,7 @@ const StoryTeller: React.FC = () => {
     onEnd: handleSpeechEnd
   });
 
-  // Update emotion and text when segment changes
+  // Update emotion, text, and handle language changes when segment or language changes
   useEffect(() => {
     if (currentStory && currentStory.segments && currentStory.segments[currentSegmentIndex]) {
       const segment = currentStory.segments[currentSegmentIndex];
@@ -49,33 +49,12 @@ const StoryTeller: React.FC = () => {
         setTimeout(() => {
           speak(textContent);
         }, 100);
+      } else {
+        // If not playing, cancel any ongoing speech
+        cancel();
       }
     }
-  }, [currentStory, currentSegmentIndex, isPlaying, language, speak]);
-
-  // Reset to the current segment start when language changes
-  useEffect(() => {
-    if (currentStory && isPlaying) {
-      // If the story is playing and language changes, restart the current segment
-      cancel();
-      const segment = currentStory.segments?.[currentSegmentIndex];
-      if (segment) {
-        const textContent = language === 'en' ? segment.text : segment.text_fr;
-        setCurrentText(textContent);
-        setTimeout(() => {
-          speak(textContent);
-        }, 100);
-      }
-    } else if (currentStory) {
-      // Only update text if not playing
-      cancel();
-      const segment = currentStory.segments?.[currentSegmentIndex];
-      if (segment) {
-        const textContent = language === 'en' ? segment.text : segment.text_fr;
-        setCurrentText(textContent);
-      }
-    }
-  }, [language, currentStory, currentSegmentIndex, isPlaying, cancel, speak]);
+  }, [currentStory, currentSegmentIndex, isPlaying, language, speak, cancel]);
 
   // Handle story selection
   const handleStorySelect = (story: Story) => {
@@ -87,21 +66,11 @@ const StoryTeller: React.FC = () => {
   // Playback controls
   const playStory = () => {
     setIsPlaying(true);
-    // Reset and start from the beginning of the current segment when resuming
-    cancel();
-    if (currentStory && currentStory.segments && currentStory.segments[currentSegmentIndex]) {
-      const segment = currentStory.segments[currentSegmentIndex];
-      const textContent = language === 'en' ? segment.text : segment.text_fr;
-      console.log('Playing story, speaking:', textContent);
-      setTimeout(() => {
-        speak(textContent);
-      }, 100);
-    }
   };
 
   const pauseStory = () => {
     setIsPlaying(false);
-    pause();
+    cancel();
   };
 
   const stopStory = () => {
@@ -120,7 +89,7 @@ const StoryTeller: React.FC = () => {
         </div>
       </div>
       <div className="w-full flex">
-        <div className="flex-1">
+        <div className="flex-1 flex items-center justify-center">
           {currentStory ? (
             <StoryPlayer
               currentText={currentText}
@@ -136,6 +105,7 @@ const StoryTeller: React.FC = () => {
             />
           )}
         </div>
+        <div className="w-8"></div>
         <div className="ml-4">
           <Robot emotion={currentEmotion} isPlaying={isPlaying} />
         </div>
