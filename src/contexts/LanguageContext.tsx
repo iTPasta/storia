@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Language = 'en' | 'fr';
@@ -14,7 +13,7 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('fr'); // Default to French
   const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
 
   // Load saved language preference on initial render
@@ -28,16 +27,32 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       localStorage.setItem('story-language', 'fr');
     }
 
-    // Load saved voice preference
+    // Load saved voice preference for the current language
     const savedVoice = localStorage.getItem(`story-voice-${savedLanguage || 'fr'}`);
     if (savedVoice) {
       setSelectedVoice(savedVoice);
     }
   }, []);
 
+  // When language changes, load the appropriate voice for that language
+  useEffect(() => {
+    const savedVoice = localStorage.getItem(`story-voice-${language}`);
+    if (savedVoice) {
+      setSelectedVoice(savedVoice);
+    } else {
+      // If no voice is saved for this language, we'll keep the current voice
+      // The SettingsDialog component will handle setting a default voice if needed
+    }
+  }, [language]);
+
   // Simple translation function that selects text based on current language
   const t = (en: string, fr: string): string => {
     return language === 'en' ? en : fr;
+  };
+
+  const handleSetSelectedVoice = (voiceURI: string) => {
+    setSelectedVoice(voiceURI);
+    localStorage.setItem(`story-voice-${language}`, voiceURI);
   };
 
   return (
@@ -46,7 +61,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setLanguage, 
       t,
       selectedVoice,
-      setSelectedVoice
+      setSelectedVoice: handleSetSelectedVoice
     }}>
       {children}
     </LanguageContext.Provider>

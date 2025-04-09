@@ -19,13 +19,12 @@ interface SpeechVoice {
 }
 
 const SettingsDialog: React.FC<SettingsDialogProps> = ({ disabled = false }) => {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t, selectedVoice, setSelectedVoice } = useLanguage();
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [availableVoices, setAvailableVoices] = useState<SpeechVoice[]>([]);
-  const [selectedVoice, setSelectedVoice] = useState<string>('');
   
   const CORRECT_PASSWORD = 'qtrobot2025';
   const AUTO_CLOSE_TIME = 15; // seconds
@@ -41,10 +40,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ disabled = false }) => 
       localStorage.setItem('story-language', 'fr');
     }
     
-    const savedVoice = localStorage.getItem(`story-voice-${language}`);
-    if (savedVoice) {
-      setSelectedVoice(savedVoice);
-    }
+    // No need to set selectedVoice here as it's handled by the LanguageContext
   }, []);
 
   // Update available voices when language or window.speechSynthesis changes
@@ -86,14 +82,19 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ disabled = false }) => 
         window.speechSynthesis.onvoiceschanged = null;
       }
     };
-  }, [language]);
+  }, [language, setSelectedVoice]);
 
-  // Handle dialog open/close
+  // Handle dialog open/close and countdown setup
   useEffect(() => {
-    if (open && !authenticated) {
-      // Start countdown if dialog is open and not authenticated
-      setCountdown(AUTO_CLOSE_TIME);
-    } else if (!open) {
+    if (open) {
+      if (!authenticated) {
+        // Start countdown only if not authenticated
+        setCountdown(AUTO_CLOSE_TIME);
+      } else {
+        // If authenticated, make sure countdown is cleared
+        setCountdown(null);
+      }
+    } else {
       // Reset authentication and password when dialog is closed
       setAuthenticated(false);
       setPassword('');
@@ -117,6 +118,7 @@ const SettingsDialog: React.FC<SettingsDialogProps> = ({ disabled = false }) => 
     if (password === CORRECT_PASSWORD) {
       setAuthenticated(true);
       setPassword('');
+      setCountdown(null); // Clear the countdown when authenticated
     } else {
       setPassword('');
       setOpen(false);
