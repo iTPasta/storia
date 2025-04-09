@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Language = 'en' | 'fr';
@@ -8,6 +9,10 @@ interface LanguageContextType {
   t: (en: string, fr: string) => string;
   selectedVoice: string | null;
   setSelectedVoice: (voiceURI: string) => void;
+  rate: number;
+  setRate: (rate: number) => void;
+  pitch: number;
+  setPitch: (pitch: number) => void;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -15,6 +20,8 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('fr'); // Default to French
   const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
+  const [rate, setRate] = useState<number>(1.0); // Default speech rate
+  const [pitch, setPitch] = useState<number>(1.0); // Default speech pitch
 
   // Load saved language preference on initial render
   useEffect(() => {
@@ -31,6 +38,17 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const savedVoice = localStorage.getItem(`story-voice-${savedLanguage || 'fr'}`);
     if (savedVoice) {
       setSelectedVoice(savedVoice);
+    }
+
+    // Load saved rate and pitch preferences
+    const savedRate = localStorage.getItem('speech-rate');
+    if (savedRate) {
+      setRate(parseFloat(savedRate));
+    }
+
+    const savedPitch = localStorage.getItem('speech-pitch');
+    if (savedPitch) {
+      setPitch(parseFloat(savedPitch));
     }
   }, []);
 
@@ -55,13 +73,27 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem(`story-voice-${language}`, voiceURI);
   };
 
+  const handleSetRate = (newRate: number) => {
+    setRate(newRate);
+    localStorage.setItem('speech-rate', newRate.toString());
+  };
+
+  const handleSetPitch = (newPitch: number) => {
+    setPitch(newPitch);
+    localStorage.setItem('speech-pitch', newPitch.toString());
+  };
+
   return (
     <LanguageContext.Provider value={{ 
       language, 
       setLanguage, 
       t,
       selectedVoice,
-      setSelectedVoice: handleSetSelectedVoice
+      setSelectedVoice: handleSetSelectedVoice,
+      rate,
+      setRate: handleSetRate,
+      pitch,
+      setPitch: handleSetPitch
     }}>
       {children}
     </LanguageContext.Provider>
