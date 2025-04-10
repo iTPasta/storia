@@ -66,24 +66,53 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
   }, [t, toast]);
   
   const handleStoryRequest = async () => {
-    const searchTerm = storySearch.toLowerCase();
+    setIsLoading(true);
+    const searchTerm = storySearch.toLowerCase().trim();
     
-    const foundStory = stories.find(story => 
-      (language === 'en' ? story.title : story.title_fr).toLowerCase().includes(searchTerm)
-    );
-    
-    if (foundStory) {
-      try {
-        // Fetch story segments
+    try {
+      // Case 1: Empty search term - generate a random story
+      if (!searchTerm) {
+        await generateAndTellStory('');
+        return;
+      }
+      
+      // Case 2: Search for existing story
+      const foundStory = stories.find(story => 
+        (language === 'en' ? story.title : story.title_fr).toLowerCase().includes(searchTerm)
+      );
+      
+      if (foundStory) {
+        await tellExistingStory(foundStory);
+      } else {
+        // Case 3: Generate a story with the provided name
+        await generateAndTellStory(storySearch);
+      }
+    } catch (error) {
+      console.error('Error handling story request:', error);
+      toast({
+        title: t('Error', 'Erreur'),
+        description: t('Something went wrong', 'Quelque chose s\'est mal passé'),
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Function to tell an existing story
+  const tellExistingStory = async (story: Story) => {
+    try {
+      // If segments aren't loaded yet, fetch them
+      if (!story.segments) {
         const { data: segmentsData, error } = await supabase
           .from('story_segments')
           .select('*')
-          .eq('story_id', foundStory.id)
+          .eq('story_id', story.id)
           .order('sequence_order', { ascending: true });
         
         if (error) throw error;
         
-        if (segmentsData) {
+        if (segmentsData && segmentsData.length > 0) {
           // Convert the segments to the correct type
           const typedSegments: StorySegment[] = segmentsData.map(segment => ({
             ...segment,
@@ -91,29 +120,73 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
           }));
           
           const completeStory: Story = {
-            ...foundStory,
+            ...story,
             segments: typedSegments
           };
           
           onStorySelect(completeStory);
+          return;
         }
-      } catch (error) {
-        console.error('Error fetching story segments:', error);
-        toast({
-          title: t('Error fetching story details', 'Erreur lors de la récupération des détails de l\'histoire'),
-          variant: 'destructive'
-        });
-        
-        // If we can't get segments from Supabase, try to use local sample
-        const fallbackStory = SAMPLE_STORIES.find(s => s.id === foundStory.id);
-        if (fallbackStory) {
-          onStorySelect(fallbackStory);
-        }
+      } else {
+        // If segments are already loaded, use them directly
+        onStorySelect(story);
+        return;
       }
-    } else {
+      
+      // If we couldn't get segments from Supabase, try to use local sample
+      const fallbackStory = SAMPLE_STORIES.find(s => s.id === story.id);
+      if (fallbackStory) {
+        onStorySelect(fallbackStory);
+      } else {
+        throw new Error('Could not load story segments');
+      }
+    } catch (error) {
+      console.error('Error fetching story segments:', error);
       toast({
-        title: t('Story not found', 'Histoire non trouvée'),
-        description: t('Try another title', 'Essayez un autre titre'),
+        title: t('Error fetching story details', 'Erreur lors de la récupération des détails de l\'histoire'),
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  // Function to generate and tell a story using the edge function
+  const generateAndTellStory = async (storyName: string) => {
+    try {
+      toast({
+        title: storyName 
+          ? t(`Generating story about "${storyName}"`, `Génération d'une histoire sur "${storyName}"`) 
+          : t('Generating a random story', 'Génération d\'une histoire aléatoire'),
+        description: t('This might take a moment...', 'Cela peut prendre un moment...'),
+      });
+      
+      const { data, error } = await supabase.functions.invoke('generate-story', {
+        body: { storyName, language },
+      });
+      
+      if (error) {
+        console.error('Error calling generate-story function:', error);
+        throw error;
+      }
+      
+      if (!data || !data.segments) {
+        throw new Error('Invalid story data received');
+      }
+      
+      // Ensure the emotions are valid
+      const storyWithValidEmotions: Story = {
+        ...data,
+        segments: data.segments.map(segment => ({
+          ...segment,
+          emotion: validateEmotion(segment.emotion)
+        }))
+      };
+      
+      onStorySelect(storyWithValidEmotions);
+    } catch (error) {
+      console.error('Error generating story:', error);
+      toast({
+        title: t('Failed to generate story', 'Échec de la génération de l\'histoire'),
+        description: t('Please try again later', 'Veuillez réessayer plus tard'),
         variant: 'destructive'
       });
     }
@@ -141,13 +214,13 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
       </p>
       <p className="text-sm mb-6 text-muted-foreground text-center">
         {language === 'en' 
-          ? `Try asking for "${stories[0]?.title}" or "${stories[1]?.title}"`
-          : `Essayez de demander "${stories[0]?.title_fr}" ou "${stories[1]?.title_fr}"`}
+          ? `Try asking for "${stories[0]?.title}" or leave empty for a random story`
+          : `Essayez de demander "${stories[0]?.title_fr}" ou laissez vide pour une histoire aléatoire`}
       </p>
       
       <div className="story-input flex items-center gap-2">
         <Input
-          placeholder={t('Type a story name...', 'Tapez un nom d\'histoire...')}
+          placeholder={t('Type a story name or leave empty...', 'Tapez un nom d\'histoire ou laissez vide...')}
           value={storySearch}
           onChange={(e) => setStorySearch(e.target.value)}
           className="rounded-full text-lg py-6"
@@ -175,7 +248,14 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
         className="mt-4 bg-robot-primary hover:bg-robot-primary/80 text-lg py-6 px-8 rounded-full"
         disabled={isLoading}
       >
-        {t('Tell me this story!', 'Raconte-moi cette histoire!')}
+        {isLoading 
+          ? t('Generating...', 'Génération en cours...') 
+          : t(!storySearch.trim() 
+              ? 'Tell me a random story!' 
+              : 'Tell me this story!', 
+            !storySearch.trim() 
+              ? 'Raconte-moi une histoire aléatoire !' 
+              : 'Raconte-moi cette histoire!')}
       </Button>
     </div>
   );
