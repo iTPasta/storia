@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -73,6 +74,46 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
   // Function to handle clicking on a suggested story title
   const handleStoryClick = (title: string) => {
     setStorySearch(title);
+  };
+  
+  // Helper function to format story titles with proper separators
+  const formatStoryList = (storyArray: Story[]): JSX.Element => {
+    if (storyArray.length === 0) return <></>;
+    
+    const titles = storyArray.map(story => {
+      const title = language === 'en' ? story.title : story.title_fr;
+      return (
+        <span 
+          key={story.id}
+          className="text-sky-500 cursor-pointer" 
+          onClick={() => handleStoryClick(title)}
+        >
+          "{title}"
+        </span>
+      );
+    });
+    
+    if (titles.length === 1) {
+      return titles[0];
+    } else if (titles.length === 2) {
+      return (
+        <>
+          {titles[0]} {language === 'en' ? ' or ' : ' ou '} {titles[1]}
+        </>
+      );
+    } else {
+      const lastTitle = titles.pop();
+      return (
+        <>
+          {titles.reduce((prev, curr, i) => (
+            <>
+              {prev}{i > 0 ? ', ' : ''}{curr}
+            </>
+          ))}
+          {language === 'en' ? ', or ' : ', ou '}{lastTitle}
+        </>
+      );
+    }
   };
   
   const handleStoryRequest = async () => {
@@ -217,15 +258,6 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
     lang: language === 'en' ? 'en-US' : 'fr-FR'
   });
 
-  // Get a random example story title for the suggestion text
-  const exampleStory = stories.length > 0 ? 
-    stories[Math.floor(Math.random() * stories.length)] : 
-    null;
-    
-  const exampleStoryTitle = exampleStory ? 
-    (language === 'en' ? exampleStory.title : exampleStory.title_fr) : 
-    '';
-
   return (
     <div className="flex flex-col items-center mt-8 w-full">
       <p className="text-2xl mb-4 text-center">
@@ -233,8 +265,8 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
       </p>
       <p className="text-sm mb-6 text-muted-foreground text-center">
         {language === 'en' 
-          ? <>Try asking for <span className="text-sky-500 cursor-pointer" onClick={() => handleStoryClick(exampleStory?.title || '')}>"{exampleStoryTitle}"</span> or leave empty for a random story</>
-          : <>Essayez de demander <span className="text-sky-500 cursor-pointer" onClick={() => handleStoryClick(exampleStory?.title_fr || '')}>"{exampleStoryTitle}"</span> ou laissez vide pour une histoire aléatoire</>}
+          ? <>Try asking for {formatStoryList(stories)} or leave empty for a random story</>
+          : <>Essayez de demander {formatStoryList(stories)} ou laissez vide pour une histoire aléatoire</>}
       </p>
       
       <div className="story-input flex items-center gap-2">
