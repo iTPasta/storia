@@ -5,11 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Mic } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
-import { Story, StorySegment, SAMPLE_STORIES } from '@/types/story';
+import { Story, SAMPLE_STORIES } from '@/types/story';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { Emotion } from '@/components/Robot';
+import StorySuggestions from './search/StorySuggestions';
+import { fetchStories, fetchStorySegments, generateAIStory } from '@/services/storyService';
 
 interface StorySearchProps {
   onStorySelect: (story: Story) => void;
@@ -23,97 +23,38 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
   const { language, t } = useLanguage();
   const { toast } = useToast();
 
-  // Helper function to convert emotion string to Emotion type
-  const validateEmotion = (emotion: string): Emotion => {
-    const validEmotions: Emotion[] = ['happy', 'sad', 'surprised', 'angry', 'neutral'];
-    return validEmotions.includes(emotion as Emotion)
-      ? (emotion as Emotion)
-      : 'neutral';
-  };
-
   // Fetch stories from Supabase
   useEffect(() => {
-    const fetchStories = async () => {
+    const loadStories = async () => {
       setIsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('stories')
-          .select('id, title, title_fr');
-
-        if (error) {
-          throw error;
-        }
-
-        if (data && data.length > 0) {
-          setStories(data);
+      
+      const stories = await fetchStories(
+        language,
+        (data) => {
           toast({
             title: t('Stories loaded successfully', 'Histoires chargées avec succès'),
             description: t(`${data.length} stories available`, `${data.length} histoires disponibles`),
           });
-        } else {
-          throw new Error('No stories found');
+        },
+        () => {
+          toast({
+            title: t('Error fetching stories', 'Erreur lors de la récupération des histoires'),
+            description: t('Using fallback sample stories', 'Utilisation des histoires d\'exemple'),
+            variant: 'destructive'
+          });
         }
-      } catch (error) {
-        console.error('Error fetching stories:', error);
-        toast({
-          title: t('Error fetching stories', 'Erreur lors de la récupération des histoires'),
-          description: t('Using fallback sample stories', 'Utilisation des histoires d\'exemple'),
-          variant: 'destructive'
-        });
-
-        // Use sample stories as fallback
-        setStories(SAMPLE_STORIES);
-      } finally {
-        setIsLoading(false);
-      }
+      );
+      
+      setStories(stories);
+      setIsLoading(false);
     };
 
-    fetchStories();
-  }, [t, toast]);
+    loadStories();
+  }, [t, toast, language]);
 
   // Function to handle clicking on a suggested story title
   const handleStoryClick = (title: string) => {
     setStorySearch(title);
-  };
-
-  // Helper function to format story titles with proper separators
-  const formatStoryList = (storyArray: Story[]): JSX.Element => {
-    if (storyArray.length === 0) return <></>;
-
-    const titles = storyArray.map(story => {
-      const title = language === 'en' ? story.title : story.title_fr;
-      return (
-        <span
-          key={story.id}
-          className="text-sky-500 cursor-pointer"
-          onClick={() => handleStoryClick(title)}
-        >
-          "{title}"
-        </span>
-      );
-    });
-
-    if (titles.length === 1) {
-      return titles[0];
-    } else if (titles.length === 2) {
-      return (
-        <>
-          {titles[0]} {language === 'en' ? ' or ' : ' ou '} {titles[1]}
-        </>
-      );
-    } else {
-      const lastTitle = titles.pop();
-      return (
-        <>
-          {titles.reduce((prev, curr, i) => (
-            <>
-              {prev}{i > 0 ? ', ' : ''}{curr}
-            </>
-          ))}
-          {language === 'en' ? ', or ' : ', ou '}{lastTitle}
-        </>
-      );
-    }
   };
 
   const handleStoryRequest = async () => {
@@ -153,46 +94,9 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
   // Function to tell an existing story
   const tellExistingStory = async (story: Story) => {
     try {
-      // If segments aren't loaded yet, fetch them
-      if (!story.segments) {
-        const { data: segmentsData, error } = await supabase
-          .from('story_segments')
-          .select('*')
-          .eq('story_id', story.id)
-          .order('sequence_order', { ascending: true });
-
-        if (error) throw error;
-
-        if (segmentsData && segmentsData.length > 0) {
-          // Convert the segments to the correct type
-          const typedSegments: StorySegment[] = segmentsData.map(segment => ({
-            ...segment,
-            emotion: validateEmotion(segment.emotion)
-          }));
-
-          const completeStory: Story = {
-            ...story,
-            segments: typedSegments
-          };
-
-          onStorySelect(completeStory);
-          return;
-        }
-      } else {
-        // If segments are already loaded, use them directly
-        onStorySelect(story);
-        return;
-      }
-
-      // If we couldn't get segments from Supabase, try to use local sample
-      const fallbackStory = SAMPLE_STORIES.find(s => s.id === story.id);
-      if (fallbackStory) {
-        onStorySelect(fallbackStory);
-      } else {
-        throw new Error('Could not load story segments');
-      }
+      const completeStory = await fetchStorySegments(story);
+      onStorySelect(completeStory);
     } catch (error) {
-      console.error('Error fetching story segments:', error);
       toast({
         title: t('Error fetching story details', 'Erreur lors de la récupération des détails de l\'histoire'),
         variant: 'destructive'
@@ -210,31 +114,9 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
         description: t('This might take a moment...', 'Cela peut prendre un moment...'),
       });
 
-      const { data, error } = await supabase.functions.invoke('generate-story', {
-        body: { storyName, language },
-      });
-
-      if (error) {
-        console.error('Error calling generate-story function:', error);
-        throw error;
-      }
-
-      if (!data || !data.segments) {
-        throw new Error('Invalid story data received');
-      }
-
-      // Ensure the emotions are valid
-      const storyWithValidEmotions: Story = {
-        ...data,
-        segments: data.segments.map(segment => ({
-          ...segment,
-          emotion: validateEmotion(segment.emotion)
-        }))
-      };
-
-      onStorySelect(storyWithValidEmotions);
+      const generatedStory = await generateAIStory(storyName, language);
+      onStorySelect(generatedStory);
     } catch (error) {
-      console.error('Error generating story:', error);
       toast({
         title: t('Failed to generate story', 'Échec de la génération de l\'histoire'),
         description: t('Please try again later', 'Veuillez réessayer plus tard'),
@@ -263,11 +145,11 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
       <p className="text-2xl mb-4 text-center">
         {t('What story would you like to hear?', 'Quelle histoire aimeriez-vous entendre?')}
       </p>
-      <p className="text-sm mb-6 text-muted-foreground text-center">
-        {language === 'en'
-          ? <>Try asking for {formatStoryList(stories)} for example, or leave empty for a random story</>
-          : <>Essayez de demander {formatStoryList(stories)} par exemple, ou laissez vide pour une histoire aléatoire</>}
-      </p>
+      
+      <StorySuggestions 
+        stories={stories} 
+        onTitleClick={handleStoryClick} 
+      />
 
       <div className="story-input flex items-center gap-2">
         <Input
