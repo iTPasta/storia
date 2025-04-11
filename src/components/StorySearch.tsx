@@ -10,6 +10,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Emotion } from '@/components/Robot';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface StorySearchProps {
   onStorySelect: (story: Story) => void;
@@ -44,8 +45,14 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
           throw error;
         }
         
-        if (data) {
+        if (data && data.length > 0) {
           setStories(data);
+          toast({
+            title: t('Stories loaded successfully', 'Histoires chargées avec succès'),
+            description: t(`${data.length} stories available`, `${data.length} histoires disponibles`),
+          });
+        } else {
+          throw new Error('No stories found');
         }
       } catch (error) {
         console.error('Error fetching stories:', error);
@@ -64,6 +71,11 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
     
     fetchStories();
   }, [t, toast]);
+  
+  // Function to handle selecting a story from the list
+  const handleStoryClick = (title: string) => {
+    setStorySearch(language === 'en' ? title : stories.find(s => s.title_fr === title)?.title || title);
+  };
   
   const handleStoryRequest = async () => {
     setIsLoading(true);
@@ -257,6 +269,29 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
               ? 'Raconte-moi une histoire aléatoire !' 
               : 'Raconte-moi cette histoire!')}
       </Button>
+      
+      {/* Story list section */}
+      <div className="w-full mt-8">
+        <h3 className="text-xl font-medium mb-4 text-center">
+          {t('Available Stories', 'Histoires disponibles')}
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-60 overflow-y-auto p-2">
+          {stories.map((story) => (
+            <Card 
+              key={story.id}
+              className="cursor-pointer hover:bg-muted/50 transition-colors"
+              onClick={() => handleStoryClick(language === 'en' ? story.title : story.title_fr)}
+            >
+              <CardContent className="p-4">
+                <p className="text-md font-medium">
+                  {language === 'en' ? story.title : story.title_fr}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
