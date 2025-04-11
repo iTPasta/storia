@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +9,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Emotion } from '@/components/Robot';
-import { Card, CardContent } from '@/components/ui/card';
 
 interface StorySearchProps {
   onStorySelect: (story: Story) => void;
@@ -72,9 +70,9 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
     fetchStories();
   }, [t, toast]);
   
-  // Function to handle selecting a story from the list
+  // Function to handle clicking on a suggested story title
   const handleStoryClick = (title: string) => {
-    setStorySearch(language === 'en' ? title : stories.find(s => s.title_fr === title)?.title || title);
+    setStorySearch(title);
   };
   
   const handleStoryRequest = async () => {
@@ -219,6 +217,15 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
     lang: language === 'en' ? 'en-US' : 'fr-FR'
   });
 
+  // Get a random example story title for the suggestion text
+  const exampleStory = stories.length > 0 ? 
+    stories[Math.floor(Math.random() * stories.length)] : 
+    null;
+    
+  const exampleStoryTitle = exampleStory ? 
+    (language === 'en' ? exampleStory.title : exampleStory.title_fr) : 
+    '';
+
   return (
     <div className="flex flex-col items-center mt-8 w-full">
       <p className="text-2xl mb-4 text-center">
@@ -226,8 +233,8 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
       </p>
       <p className="text-sm mb-6 text-muted-foreground text-center">
         {language === 'en' 
-          ? `Try asking for "${stories[0]?.title}" or leave empty for a random story`
-          : `Essayez de demander "${stories[0]?.title_fr}" ou laissez vide pour une histoire aléatoire`}
+          ? <>Try asking for <span className="text-sky-500 cursor-pointer" onClick={() => handleStoryClick(exampleStory?.title || '')}>"{exampleStoryTitle}"</span> or leave empty for a random story</>
+          : <>Essayez de demander <span className="text-sky-500 cursor-pointer" onClick={() => handleStoryClick(exampleStory?.title_fr || '')}>"{exampleStoryTitle}"</span> ou laissez vide pour une histoire aléatoire</>}
       </p>
       
       <div className="story-input flex items-center gap-2">
@@ -269,29 +276,6 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
               ? 'Raconte-moi une histoire aléatoire !' 
               : 'Raconte-moi cette histoire!')}
       </Button>
-      
-      {/* Story list section */}
-      <div className="w-full mt-8">
-        <h3 className="text-xl font-medium mb-4 text-center">
-          {t('Available Stories', 'Histoires disponibles')}
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-60 overflow-y-auto p-2">
-          {stories.map((story) => (
-            <Card 
-              key={story.id}
-              className="cursor-pointer hover:bg-muted/50 transition-colors"
-              onClick={() => handleStoryClick(language === 'en' ? story.title : story.title_fr)}
-            >
-              <CardContent className="p-4">
-                <p className="text-md font-medium">
-                  {language === 'en' ? story.title : story.title_fr}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };
