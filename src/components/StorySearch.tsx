@@ -22,15 +22,15 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
   const [isLoading, setIsLoading] = useState(false);
   const { language, t } = useLanguage();
   const { toast } = useToast();
-  
+
   // Helper function to convert emotion string to Emotion type
   const validateEmotion = (emotion: string): Emotion => {
     const validEmotions: Emotion[] = ['happy', 'sad', 'surprised', 'angry', 'neutral'];
-    return validEmotions.includes(emotion as Emotion) 
-      ? (emotion as Emotion) 
+    return validEmotions.includes(emotion as Emotion)
+      ? (emotion as Emotion)
       : 'neutral';
   };
-  
+
   // Fetch stories from Supabase
   useEffect(() => {
     const fetchStories = async () => {
@@ -39,11 +39,11 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
         const { data, error } = await supabase
           .from('stories')
           .select('id, title, title_fr');
-        
+
         if (error) {
           throw error;
         }
-        
+
         if (data && data.length > 0) {
           setStories(data);
           toast({
@@ -60,39 +60,39 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
           description: t('Using fallback sample stories', 'Utilisation des histoires d\'exemple'),
           variant: 'destructive'
         });
-        
+
         // Use sample stories as fallback
         setStories(SAMPLE_STORIES);
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchStories();
   }, [t, toast]);
-  
+
   // Function to handle clicking on a suggested story title
   const handleStoryClick = (title: string) => {
     setStorySearch(title);
   };
-  
+
   // Helper function to format story titles with proper separators
   const formatStoryList = (storyArray: Story[]): JSX.Element => {
     if (storyArray.length === 0) return <></>;
-    
+
     const titles = storyArray.map(story => {
       const title = language === 'en' ? story.title : story.title_fr;
       return (
-        <span 
+        <span
           key={story.id}
-          className="text-sky-500 cursor-pointer" 
+          className="text-sky-500 cursor-pointer"
           onClick={() => handleStoryClick(title)}
         >
           "{title}"
         </span>
       );
     });
-    
+
     if (titles.length === 1) {
       return titles[0];
     } else if (titles.length === 2) {
@@ -115,23 +115,23 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
       );
     }
   };
-  
+
   const handleStoryRequest = async () => {
     setIsLoading(true);
     const searchTerm = storySearch.toLowerCase().trim();
-    
+
     try {
       // Case 1: Empty search term - generate a random story
       if (!searchTerm) {
         await generateAndTellStory('');
         return;
       }
-      
+
       // Case 2: Search for existing story
-      const foundStory = stories.find(story => 
+      const foundStory = stories.find(story =>
         (language === 'en' ? story.title : story.title_fr).toLowerCase().includes(searchTerm)
       );
-      
+
       if (foundStory) {
         await tellExistingStory(foundStory);
       } else {
@@ -149,7 +149,7 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
       setIsLoading(false);
     }
   };
-  
+
   // Function to tell an existing story
   const tellExistingStory = async (story: Story) => {
     try {
@@ -160,21 +160,21 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
           .select('*')
           .eq('story_id', story.id)
           .order('sequence_order', { ascending: true });
-        
+
         if (error) throw error;
-        
+
         if (segmentsData && segmentsData.length > 0) {
           // Convert the segments to the correct type
           const typedSegments: StorySegment[] = segmentsData.map(segment => ({
             ...segment,
             emotion: validateEmotion(segment.emotion)
           }));
-          
+
           const completeStory: Story = {
             ...story,
             segments: typedSegments
           };
-          
+
           onStorySelect(completeStory);
           return;
         }
@@ -183,7 +183,7 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
         onStorySelect(story);
         return;
       }
-      
+
       // If we couldn't get segments from Supabase, try to use local sample
       const fallbackStory = SAMPLE_STORIES.find(s => s.id === story.id);
       if (fallbackStory) {
@@ -199,30 +199,30 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
       });
     }
   };
-  
+
   // Function to generate and tell a story using the edge function
   const generateAndTellStory = async (storyName: string) => {
     try {
       toast({
-        title: storyName 
-          ? t(`Generating story about "${storyName}"`, `Génération d'une histoire sur "${storyName}"`) 
+        title: storyName
+          ? t(`Generating story about "${storyName}"`, `Génération d'une histoire sur "${storyName}"`)
           : t('Generating a random story', 'Génération d\'une histoire aléatoire'),
         description: t('This might take a moment...', 'Cela peut prendre un moment...'),
       });
-      
+
       const { data, error } = await supabase.functions.invoke('generate-story', {
         body: { storyName, language },
       });
-      
+
       if (error) {
         console.error('Error calling generate-story function:', error);
         throw error;
       }
-      
+
       if (!data || !data.segments) {
         throw new Error('Invalid story data received');
       }
-      
+
       // Ensure the emotions are valid
       const storyWithValidEmotions: Story = {
         ...data,
@@ -231,7 +231,7 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
           emotion: validateEmotion(segment.emotion)
         }))
       };
-      
+
       onStorySelect(storyWithValidEmotions);
     } catch (error) {
       console.error('Error generating story:', error);
@@ -245,7 +245,7 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
 
   const handleSearchResult = (transcript: string) => {
     setStorySearch(transcript);
-    
+
     // Auto-search after voice input with a short delay
     setTimeout(() => {
       setStorySearch(transcript);
@@ -264,11 +264,11 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
         {t('What story would you like to hear?', 'Quelle histoire aimeriez-vous entendre?')}
       </p>
       <p className="text-sm mb-6 text-muted-foreground text-center">
-        {language === 'en' 
-          ? <>Try asking for {formatStoryList(stories)} or leave empty for a random story</>
-          : <>Essayez de demander {formatStoryList(stories)} ou laissez vide pour une histoire aléatoire</>}
+        {language === 'en'
+          ? <>Try asking for {formatStoryList(stories)} for example, or leave empty for a random story</>
+          : <>Essayez de demander {formatStoryList(stories)} par exemple, ou laissez vide pour une histoire aléatoire</>}
       </p>
-      
+
       <div className="story-input flex items-center gap-2">
         <Input
           placeholder={t('Type a story name or leave empty...', 'Tapez un nom d\'histoire ou laissez vide...')}
@@ -281,11 +281,11 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
             }
           }}
         />
-        
+
         <Button
           onClick={startListening}
           className={cn(
-            "rounded-full p-3", 
+            "rounded-full p-3",
             isListening ? "bg-red-500 hover:bg-red-600 animate-pulse" : "bg-robot-primary hover:bg-robot-primary/80"
           )}
           disabled={isListening}
@@ -293,19 +293,19 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
           <Mic size={24} />
         </Button>
       </div>
-      
+
       <Button
         onClick={handleStoryRequest}
         className="mt-4 bg-robot-primary hover:bg-robot-primary/80 text-lg py-6 px-8 rounded-full"
         disabled={isLoading}
       >
-        {isLoading 
-          ? t('Generating...', 'Génération en cours...') 
-          : t(!storySearch.trim() 
-              ? 'Tell me a random story!' 
-              : 'Tell me this story!', 
-            !storySearch.trim() 
-              ? 'Raconte-moi une histoire aléatoire !' 
+        {isLoading
+          ? t('Generating...', 'Génération en cours...')
+          : t(!storySearch.trim()
+            ? 'Tell me a random story!'
+            : 'Tell me this story!',
+            !storySearch.trim()
+              ? 'Raconte-moi une histoire aléatoire !'
               : 'Raconte-moi cette histoire!')}
       </Button>
     </div>
