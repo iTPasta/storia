@@ -20,8 +20,8 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('fr'); // Default to French
   const [selectedVoice, setSelectedVoice] = useState<string | null>(null);
-  const [rate, setRate] = useState<number>(1.0); // Default speech rate
-  const [pitch, setPitch] = useState<number>(1.0); // Default speech pitch
+  const [rate, setRate] = useState<number>(0.7); // Default speech rate
+  const [pitch, setPitch] = useState<number>(0.9); // Default speech pitch
 
   // Load saved language preference on initial render
   useEffect(() => {
@@ -84,9 +84,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   return (
-    <LanguageContext.Provider value={{ 
-      language, 
-      setLanguage, 
+    <LanguageContext.Provider value={{
+      language,
+      setLanguage,
       t,
       selectedVoice,
       setSelectedVoice: handleSetSelectedVoice,

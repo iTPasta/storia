@@ -17,8 +17,8 @@ interface VoiceSelectorProps {
 
 // Recommended voices for each language
 const RECOMMENDED_VOICES = {
-  en: ['English (Great Britain)+croak'],
-  fr: ['French (France)+male4', 'French (Switzerland)+Zac']
+  en: ['Google US English', 'English (Great Britain)+croak'],
+  fr: ['Google français', 'French (France)+female2']
 };
 
 const VoiceSelector: React.FC<VoiceSelectorProps> = ({ disabled = false }) => {
@@ -125,7 +125,7 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ disabled = false }) => {
           </SelectContent>
         </Select>
       </div>
-      
+
       {/* Speech Rate Slider */}
       <div className="space-y-2">
         <div className="flex justify-between items-center">
@@ -146,7 +146,7 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ disabled = false }) => {
           className="py-2"
         />
       </div>
-      
+
       {/* Speech Pitch Slider */}
       <div className="space-y-2">
         <div className="flex justify-between items-center">
