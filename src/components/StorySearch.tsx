@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/components/ui/use-toast';
 import StorySuggestions from './search/StorySuggestions';
 import { fetchStories, fetchStorySegments, generateAIStory } from '@/services/storyService';
+import { findBestMatchingStory } from '@/utils/stringMatching';
 
 interface StorySearchProps {
   onStorySelect: (story: Story) => void;
@@ -23,7 +23,6 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
   const { language, t } = useLanguage();
   const { toast } = useToast();
 
-  // Fetch stories from Supabase
   useEffect(() => {
     const loadStories = async () => {
       setIsLoading(true);
@@ -52,7 +51,6 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
     loadStories();
   }, [t, toast, language]);
 
-  // Function to handle clicking on a suggested story title
   const handleStoryClick = (title: string) => {
     setStorySearch(title);
   };
@@ -62,21 +60,19 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
     const searchTerm = storySearch.toLowerCase().trim();
 
     try {
-      // Case 1: Empty search term - generate a random story
       if (!searchTerm) {
         await generateAndTellStory('');
         return;
       }
 
-      // Case 2: Search for existing story
-      const foundStory = stories.find(story =>
-        (language === 'en' ? story.title : story.title_fr).toLowerCase().includes(searchTerm)
-      );
+      const bestMatch = findBestMatchingStory(searchTerm, stories, language);
+      const foundStory = bestMatch ? stories.find(story => 
+        (language === 'en' ? story.title : story.title_fr).toLowerCase() === bestMatch.toLowerCase()
+      ) : null;
 
       if (foundStory) {
         await tellExistingStory(foundStory);
       } else {
-        // Case 3: Generate a story with the provided name
         await generateAndTellStory(storySearch);
       }
     } catch (error) {
@@ -91,7 +87,6 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
     }
   };
 
-  // Function to tell an existing story
   const tellExistingStory = async (story: Story) => {
     try {
       const completeStory = await fetchStorySegments(story);
@@ -104,7 +99,6 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
     }
   };
 
-  // Function to generate and tell a story using the edge function
   const generateAndTellStory = async (storyName: string) => {
     try {
       toast({
@@ -128,7 +122,6 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
   const handleSearchResult = (transcript: string) => {
     setStorySearch(transcript);
 
-    // Auto-search after voice input with a short delay
     setTimeout(() => {
       setStorySearch(transcript);
       handleStoryRequest();
