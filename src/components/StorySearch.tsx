@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,13 +66,26 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
         return;
       }
 
+      // Find the best matching story based on Levenshtein distance
       const bestMatch = findBestMatchingStory(searchTerm, stories, language);
       const foundStory = bestMatch ? stories.find(story => 
         (language === 'en' ? story.title : story.title_fr).toLowerCase() === bestMatch.toLowerCase()
       ) : null;
 
       if (foundStory) {
-        await tellExistingStory(foundStory);
+        try {
+          await tellExistingStory(foundStory);
+        } catch (error) {
+          console.error('Error telling existing story:', error);
+          toast({
+            title: t('Error with this story', 'Problème avec cette histoire'),
+            description: t('Generating a new story instead', 'Génération d\'une nouvelle histoire à la place'),
+            variant: 'destructive'
+          });
+          
+          // Fallback to generating a story if the existing one fails
+          await generateAndTellStory(storySearch);
+        }
       } else {
         await generateAndTellStory(storySearch);
       }
@@ -92,10 +106,12 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
       const completeStory = await fetchStorySegments(story);
       onStorySelect(completeStory);
     } catch (error) {
+      console.error('Error fetching story details:', error);
       toast({
         title: t('Error fetching story details', 'Erreur lors de la récupération des détails de l\'histoire'),
         variant: 'destructive'
       });
+      throw error; // Rethrow to allow the calling function to handle it
     }
   };
 
@@ -111,11 +127,13 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
       const generatedStory = await generateAIStory(storyName, language);
       onStorySelect(generatedStory);
     } catch (error) {
+      console.error('Error generating story:', error);
       toast({
         title: t('Failed to generate story', 'Échec de la génération de l\'histoire'),
         description: t('Please try again later', 'Veuillez réessayer plus tard'),
         variant: 'destructive'
       });
+      throw error;
     }
   };
 

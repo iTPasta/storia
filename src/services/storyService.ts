@@ -70,16 +70,78 @@ export const fetchStorySegments = async (story: Story): Promise<Story> => {
       return story;
     }
 
-    // If we couldn't get segments from Supabase, try to use local sample
-    const fallbackStory = SAMPLE_STORIES.find(s => s.id === story.id);
+    console.log(`No segments found for story "${story.title}" - trying to generate fallback`);
+    
+    // If we get here, no segments were found in the database
+    // Try to find a matching sample story to use as fallback
+    const fallbackStory = SAMPLE_STORIES.find(s => s.id === story.id || 
+                                                   s.title === story.title || 
+                                                   s.title_fr === story.title_fr);
+    
+    // If a matching sample story was found, use that
     if (fallbackStory) {
-      return fallbackStory;
-    } else {
-      throw new Error('Could not load story segments');
+      console.log(`Using sample story as fallback for "${story.title}"`);
+      return {
+        ...story,
+        segments: fallbackStory.segments
+      };
     }
+    
+    // If no matching sample story, try to generate one with basic content
+    console.log(`Creating default segments for story "${story.title}" as last resort`);
+    const defaultSegments: StorySegment[] = [
+      {
+        id: `generated-${story.id}-1`,
+        text: `Once upon a time, there was a story called "${story.title}".`,
+        text_fr: `Il était une fois, une histoire appelée "${story.title_fr}".`,
+        emotion: 'neutral',
+        sequence_order: 1
+      },
+      {
+        id: `generated-${story.id}-2`,
+        text: "We don't have the full details of this story yet.",
+        text_fr: "Nous n'avons pas encore tous les détails de cette histoire.",
+        emotion: 'sad',
+        sequence_order: 2
+      },
+      {
+        id: `generated-${story.id}-3`,
+        text: "But we hope to add it soon!",
+        text_fr: "Mais nous espérons l'ajouter bientôt !",
+        emotion: 'happy',
+        sequence_order: 3
+      }
+    ];
+    
+    return {
+      ...story,
+      segments: defaultSegments
+    };
   } catch (error) {
     console.error('Error fetching story segments:', error);
-    throw error;
+    
+    // Last resort fallback - create a basic story with error info
+    const errorSegments: StorySegment[] = [
+      {
+        id: `error-${story.id}-1`,
+        text: `We couldn't load the story "${story.title}" right now.`,
+        text_fr: `Nous n'avons pas pu charger l'histoire "${story.title_fr}" pour le moment.`,
+        emotion: 'sad',
+        sequence_order: 1
+      },
+      {
+        id: `error-${story.id}-2`,
+        text: "Please try another story or try again later.",
+        text_fr: "Veuillez essayer une autre histoire ou réessayer plus tard.",
+        emotion: 'neutral',
+        sequence_order: 2
+      }
+    ];
+    
+    return {
+      ...story,
+      segments: errorSegments
+    };
   }
 };
 
