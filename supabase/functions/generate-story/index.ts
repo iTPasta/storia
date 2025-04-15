@@ -7,6 +7,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const emotions = ["excited", "happy", "sad", "afraid", "disgusted", "surprised", "angry", "neutral"] as const;
+type Emotion = typeof emotions[number];
+const emotionsString = emotions.join(', ');
+
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -16,18 +21,18 @@ serve(async (req) => {
   try {
     const { storyName, language } = await req.json();
     const isEnglish = language === 'en';
-    
+
     let prompt = '';
     if (storyName) {
       // Generate a story based on the provided name
-      prompt = isEnglish 
-        ? `Create a children's story titled "${storyName}" suitable for a robot to tell. The story should have 5 short segments, each with an emotion tag (happy, sad, surprised, angry, or neutral). Format as JSON: { "title": "Story Title", "title_fr": "French Title", "segments": [{"text": "English text", "text_fr": "French text", "emotion": "emotion"}] }. Emotions should match the content of each segment.`
-        : `Créez une histoire pour enfants intitulée "${storyName}" adaptée pour être racontée par un robot. L'histoire doit avoir 5 courts segments, chacun avec une étiquette d'émotion (happy, sad, surprised, angry, ou neutral). Format JSON: { "title": "Titre en anglais", "title_fr": "Titre en français", "segments": [{"text": "Texte anglais", "text_fr": "Texte français", "emotion": "émotion"}] }. Les émotions doivent correspondre au contenu de chaque segment.`;
+      prompt = isEnglish
+        ? `Create a children's story titled "${storyName}" suitable for children aged 5 to 7 years old. The story should have around 10 short segments, each with an emotion tag (${emotionsString}). Each segment must be composed of a maximum of 25 words. Format as JSON: { "title": "Story Title", "title_fr": "French Title", "segments": [{"text": "English text", "text_fr": "French text", "emotion": "emotion"}] }. Emotions should match the content of each segment.`
+        : `Créez une histoire pour enfants intitulée "${storyName}" adaptée aux enfants âgés de 5 à 7 ans. L'histoire doit avoir environ 10 courts segments, chacun avec une étiquette d'émotion (${emotionsString}). Chaque segment doit être composé d'un maximum de 25 mots. Format JSON: { "title": "Titre en anglais", "title_fr": "Titre en français", "segments": [{"text": "Texte anglais", "text_fr": "Texte français", "emotion": "émotion"}] }. Les émotions doivent correspondre au contenu de chaque segment.`;
     } else {
       // Generate a random story
-      prompt = isEnglish 
-        ? `Create a random children's story suitable for a robot to tell. The story should have 5 short segments, each with an emotion tag (happy, sad, surprised, angry, or neutral). Format as JSON: { "title": "Story Title", "title_fr": "French Title", "segments": [{"text": "English text", "text_fr": "French text", "emotion": "emotion"}] }. Emotions should match the content of each segment.`
-        : `Créez une histoire aléatoire pour enfants adaptée pour être racontée par un robot. L'histoire doit avoir 5 courts segments, chacun avec une étiquette d'émotion (happy, sad, surprised, angry, ou neutral). Format JSON: { "title": "Titre en anglais", "title_fr": "Titre en français", "segments": [{"text": "Texte anglais", "text_fr": "Texte français", "emotion": "émotion"}] }. Les émotions doivent correspondre au contenu de chaque segment.`;
+      prompt = isEnglish
+        ? `Create a random children's story suitable for children aged 5 to 7 years old. The story should have around 10 short segments, each with an emotion tag (${emotionsString}). Each segment must be composed of a maximum of 25 words. Format as JSON: { "title": "Story Title", "title_fr": "French Title", "segments": [{"text": "English text", "text_fr": "French text", "emotion": "emotion"}] }. Emotions should match the content of each segment.`
+        : `Créez une histoire aléatoire pour enfants adaptée aux enfants âgés de 5 à 7 ans. L'histoire doit avoir environ 10 courts segments, chacun avec une étiquette d'émotion (${emotionsString}). Chaque segment doit être composé d'un maximum de 25 mots. Format JSON: { "title": "Titre en anglais", "title_fr": "Titre en français", "segments": [{"text": "Texte anglais", "text_fr": "Texte français", "emotion": "émotion"}] }. Les émotions doivent correspondre au contenu de chaque segment.`;
     }
 
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -46,11 +51,11 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { 
-            role: 'system', 
-            content: isEnglish 
-              ? 'You are an AI that creates children\'s stories in both English and French.'
-              : 'Vous êtes une IA qui crée des histoires pour enfants en anglais et en français.'
+          {
+            role: 'system',
+            content: isEnglish
+              ? 'You are an AI that creates children\'s stories in both English and French, specifically tailored for children aged around 5 to 7 years old.'
+              : 'Vous êtes une IA qui crée des histoires pour enfants en anglais et en français, spécifiquement adaptées aux enfants âgés autour de 5 à 7 ans.'
           },
           { role: 'user', content: prompt }
         ],
@@ -66,7 +71,7 @@ serve(async (req) => {
 
     const data = await response.json();
     let storyContent = data.choices[0].message.content;
-    
+
     // Extract the JSON object from the response if needed
     try {
       if (storyContent.includes('```json')) {
@@ -74,9 +79,9 @@ serve(async (req) => {
       } else if (storyContent.includes('```')) {
         storyContent = storyContent.split('```')[1].split('```')[0].trim();
       }
-      
+
       const storyObject = JSON.parse(storyContent);
-      
+
       // Validate and format the story structure
       const formattedStory = {
         id: crypto.randomUUID(),
@@ -90,7 +95,7 @@ serve(async (req) => {
           sequence_order: index + 1,
         }))
       };
-      
+
       return new Response(JSON.stringify(formattedStory), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -110,26 +115,61 @@ serve(async (req) => {
   }
 });
 
-// Helper function to validate emotion
-function validateEmotion(emotion: string): 'happy' | 'sad' | 'surprised' | 'angry' | 'neutral' {
+// Helper function to validate emotion dynamically
+function validateEmotion(emotion: string): Emotion {
   const normalizedEmotion = emotion.toLowerCase().trim();
-  const validEmotions = ['happy', 'sad', 'surprised', 'angry', 'neutral'];
-  
-  if (validEmotions.includes(normalizedEmotion)) {
-    return normalizedEmotion as 'happy' | 'sad' | 'surprised' | 'angry' | 'neutral';
+
+  // Check if the emotion is valid
+  if (emotions.includes(normalizedEmotion as Emotion)) {
+    return normalizedEmotion as Emotion;
   }
-  
-  // Map common variations to valid emotions
-  if (normalizedEmotion.includes('happ') || normalizedEmotion.includes('joy')) {
-    return 'happy';
-  } else if (normalizedEmotion.includes('sad') || normalizedEmotion.includes('unhapp') || normalizedEmotion.includes('cry')) {
-    return 'sad';
-  } else if (normalizedEmotion.includes('surp') || normalizedEmotion.includes('shock')) {
-    return 'surprised';
-  } else if (normalizedEmotion.includes('ang') || normalizedEmotion.includes('mad') || normalizedEmotion.includes('frust')) {
-    return 'angry';
+
+  // Map common variations to valid emotions dynamically
+  const emotionMappings: Record<string, Emotion> = {
+    happ: 'happy',
+    joy: 'happy',
+    cheerful: 'happy',
+    content: 'happy',
+    delighted: 'happy',
+    sad: 'sad',
+    unhapp: 'sad',
+    cry: 'sad',
+    sorrow: 'sad',
+    grief: 'sad',
+    surp: 'surprised',
+    shock: 'surprised',
+    confused: 'surprised',
+    confuse: 'surprised',
+    confusion: 'surprised',
+    astonish: 'surprised',
+    ang: 'angry',
+    mad: 'angry',
+    frust: 'angry',
+    rage: 'angry',
+    furious: 'angry',
+    excitement: 'excited',
+    thrill: 'excited',
+    elated: 'excited',
+    exhilarated: 'excited',
+    overjoyed: 'excited',
+    fear: 'afraid',
+    fright: 'afraid',
+    frighten: 'afraid',
+    terror: 'afraid',
+    panic: 'afraid',
+    disgust: 'disgusted',
+    revulsion: 'disgusted',
+    repulsion: 'disgusted',
+    nauseated: 'disgusted',
+    loathing: 'disgusted',
+  };
+
+  for (const [key, value] of Object.entries(emotionMappings)) {
+    if (normalizedEmotion.includes(key)) {
+      return value;
+    }
   }
-  
+
   // Default to neutral if no match
   return 'neutral';
 }
