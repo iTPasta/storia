@@ -6,7 +6,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 // Helper function to validate emotion string as Emotion type
 export const validateEmotion = (emotion: string): Emotion => {
-  const validEmotions: Emotion[] = ['happy', 'sad', 'surprised', 'angry', 'neutral'];
+  const validEmotions: Emotion[] = ["excited", "happy", "sad", "afraid", "disgusted", "surprised", "angry", "neutral"];
   return validEmotions.includes(emotion as Emotion)
     ? (emotion as Emotion)
     : 'neutral';
@@ -85,7 +85,7 @@ export const fetchStorySegments = async (story: Story): Promise<Story> => {
 
 // Generate a new AI story
 export const generateAIStory = async (
-  storyName: string, 
+  storyName: string,
   language: 'en' | 'fr'
 ): Promise<Story> => {
   try {
