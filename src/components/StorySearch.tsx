@@ -26,7 +26,7 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
   useEffect(() => {
     const loadStories = async () => {
       setIsLoading(true);
-      
+
       const stories = await fetchStories(
         language,
         (data) => {
@@ -43,7 +43,7 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
           });
         }
       );
-      
+
       setStories(stories);
       setIsLoading(false);
     };
@@ -66,7 +66,7 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
       }
 
       const bestMatch = findBestMatchingStory(searchTerm, stories, language);
-      const foundStory = bestMatch ? stories.find(story => 
+      const foundStory = bestMatch ? stories.find(story =>
         (language === 'en' ? story.title : story.title_fr).toLowerCase() === bestMatch.toLowerCase()
       ) : null;
 
@@ -136,17 +136,17 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
   return (
     <div className="flex flex-col items-center mt-8 w-full">
       <p className="text-2xl mb-4 text-center">
-        {t('What story would you like to hear?', 'Quelle histoire aimeriez-vous entendre?')}
+        {t('What story would you like to hear?', 'Quelle histoire aimerais-tu entendre?')}
       </p>
-      
-      <StorySuggestions 
-        stories={stories} 
-        onTitleClick={handleStoryClick} 
+
+      <StorySuggestions
+        stories={stories}
+        onTitleClick={handleStoryClick}
       />
 
       <div className="story-input flex items-center gap-2">
         <Input
-          placeholder={t('Type a story name or leave empty...', 'Tapez un nom d\'histoire ou laissez vide...')}
+          placeholder={t('Type a story name or leave empty...', 'Tape un nom d\'histoire ou laisse vide...')}
           value={storySearch}
           onChange={(e) => setStorySearch(e.target.value)}
           className="rounded-full text-lg py-6"
