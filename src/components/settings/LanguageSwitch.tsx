@@ -10,7 +10,7 @@ interface LanguageSwitchProps {
 
 const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ disabled = false }) => {
   const { language, setLanguage, t } = useLanguage();
-  
+
   const handleLanguageChange = (checked: boolean) => {
     if (disabled) return;
     const newLanguage = checked ? 'fr' : 'en';
@@ -27,16 +27,16 @@ const LanguageSwitch: React.FC<LanguageSwitchProps> = ({ disabled = false }) => 
         </p>
       </div>
       <div className="flex items-center space-x-2">
-        <span className={`text-sm ${language === 'fr' ? 'font-medium' : 'text-muted-foreground'}`}>
+        <span className={`text-sm ${language !== 'fr' ? 'font-medium' : 'text-muted-foreground'}`}>
           {t('English', 'Anglais')}
         </span>
-        <Switch 
-          id="language-switch" 
+        <Switch
+          id="language-switch"
           checked={language === 'fr'}
           onCheckedChange={handleLanguageChange}
           disabled={disabled}
         />
-        <span className={`text-sm ${language === 'fr' ? 'text-muted-foreground' : 'font-medium'}`}>
+        <span className={`text-sm ${language !== 'fr' ? 'text-muted-foreground' : 'font-medium'}`}>
           {t('French', 'Français')}
         </span>
       </div>
