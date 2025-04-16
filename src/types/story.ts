@@ -46,7 +46,7 @@ export const SAMPLE_STORIES: Story[] = [
         id: '3',
         text: "Suddenly, Hop saw a bright flash of lightning that struck a nearby tree!",
         text_fr: "Soudain, Hop vit un éclair brillant qui frappa un arbre proche !",
-        emotion: 'surprised',
+        emotion: 'confused',
         sequence_order: 3
       },
       {
@@ -81,7 +81,7 @@ export const SAMPLE_STORIES: Story[] = [
         id: '2',
         text: "One night, she noticed that her favorite star was missing from the sky!",
         text_fr: "Une nuit, elle remarqua que son étoile préférée avait disparu du ciel !",
-        emotion: 'surprised',
+        emotion: 'confused',
         sequence_order: 2
       },
       {

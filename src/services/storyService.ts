@@ -6,7 +6,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 // Helper function to validate emotion string as Emotion type
 export const validateEmotion = (emotion: string): Emotion => {
-  const validEmotions: Emotion[] = ["excited", "happy", "sad", "afraid", "disgusted", "surprised", "angry", "neutral"];
+  const validEmotions: Emotion[] = ["excited", "happy", "sad", "afraid", "disgusted", "confused", "angry", "neutral"];
   return validEmotions.includes(emotion as Emotion)
     ? (emotion as Emotion)
     : 'neutral';

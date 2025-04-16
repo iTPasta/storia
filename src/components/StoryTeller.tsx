@@ -13,7 +13,7 @@ const StoryTeller: React.FC = () => {
   const [currentStory, setCurrentStory] = useState<Story | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
-  const [currentEmotion, setCurrentEmotion] = useState<'happy' | 'sad' | 'surprised' | 'angry' | 'neutral'>('neutral');
+  const [currentEmotion, setCurrentEmotion] = useState<'excited' | 'happy' | 'sad' | 'afraid' | 'disgusted' | 'confused' | 'angry' | 'neutral'>('neutral');
   const [currentText, setCurrentText] = useState('');
 
   const { toast } = useToast();
@@ -37,7 +37,7 @@ const StoryTeller: React.FC = () => {
   useEffect(() => {
     if (currentStory && currentStory.segments && currentStory.segments[currentSegmentIndex]) {
       const segment = currentStory.segments[currentSegmentIndex];
-      setCurrentEmotion(segment.emotion as 'happy' | 'sad' | 'surprised' | 'angry' | 'neutral');
+      setCurrentEmotion(segment.emotion as 'excited' | 'happy' | 'sad' | 'afraid' | 'disgusted' | 'confused' | 'angry' | 'neutral');
 
       // Use the appropriate language text
       const textContent = language === 'en' ? segment.text : segment.text_fr;

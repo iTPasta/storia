@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const emotions = ["excited", "happy", "sad", "afraid", "disgusted", "surprised", "angry", "neutral"] as const;
+const emotions = ["excited", "happy", "sad", "afraid", "disgusted", "confused", "angry", "neutral"] as const;
 type Emotion = typeof emotions[number];
 const emotionsString = emotions.join(', ');
 
@@ -136,12 +136,13 @@ function validateEmotion(emotion: string): Emotion {
     cry: 'sad',
     sorrow: 'sad',
     grief: 'sad',
-    surp: 'surprised',
-    shock: 'surprised',
-    confused: 'surprised',
-    confuse: 'surprised',
-    confusion: 'surprised',
-    astonish: 'surprised',
+    surp: 'confused',
+    shock: 'confused',
+    confuse: 'confused',
+    confusion: 'confused',
+    astonish: 'confused',
+    surprise: 'confused',
+    surprised: 'confused',
     ang: 'angry',
     mad: 'angry',
     frust: 'angry',

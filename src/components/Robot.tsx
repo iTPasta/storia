@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils'; // Ensure this utility function is correctly implemented or replace it with a classNames library.
 
 // Emotion types
-export type Emotion = 'excited' | 'happy' | 'sad' | 'afraid' | 'disgusted' | 'surprised' | 'angry' | 'neutral';
+export type Emotion = 'excited' | 'happy' | 'sad' | 'afraid' | 'disgusted' | 'confused' | 'angry' | 'neutral';
 
 interface RobotProps {
   emotion: Emotion;
@@ -18,7 +18,7 @@ const emotionImages: Record<Emotion, string> = {
   sad: '/emotions/qt_cry_framed.gif',
   afraid: '/emotions/qt_afraid_framed.gif',
   disgusted: '/emotions/qt_disgusted_framed.gif',
-  surprised: '/emotions/qt_confused_framed.gif',
+  confused: '/emotions/qt_confused_framed.gif',
   angry: '/emotions/qt_angry_framed.gif',
   neutral: '/emotions/qt_neutral_state_blinking_framed.gif',
 };
