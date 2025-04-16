@@ -8,6 +8,7 @@ import SettingsDialog from './SettingsDialog';
 import { Story, SAMPLE_STORIES } from '@/types/story';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const StoryTeller: React.FC = () => {
   const [currentStory, setCurrentStory] = useState<Story | null>(null);
@@ -18,6 +19,7 @@ const StoryTeller: React.FC = () => {
 
   const { toast } = useToast();
   const { language } = useLanguage();
+  const isMobile = useIsMobile();
 
   // Speech synthesis setup
   const handleSpeechEnd = () => {
@@ -88,7 +90,14 @@ const StoryTeller: React.FC = () => {
           <SettingsDialog disabled={isPlaying} />
         </div>
       </div>
-      <div className="w-full flex">
+
+      <div className={`w-full flex ${isMobile ? 'flex-col items-center' : 'flex-row'}`}>
+        {isMobile && (
+          <div className="mb-8 w-64 flex justify-center">
+            <Robot emotion={currentEmotion} isPlaying={isPlaying} />
+          </div>
+        )}
+        
         <div className="flex-1 flex items-center justify-center">
           {currentStory ? (
             <StoryPlayer
@@ -105,10 +114,15 @@ const StoryTeller: React.FC = () => {
             />
           )}
         </div>
-        <div className="w-8"></div>
-        <div className="ml-4">
-          <Robot emotion={currentEmotion} isPlaying={isPlaying} />
-        </div>
+        
+        {!isMobile && (
+          <>
+            <div className="w-8"></div>
+            <div className="ml-4">
+              <Robot emotion={currentEmotion} isPlaying={isPlaying} />
+            </div>
+          </>
+        )}
       </div>
     </>
   );

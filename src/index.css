@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -49,7 +50,8 @@
   .robot-container {
     position: relative;
     margin: 0 auto;
-    max-width: 400px;
+    width: 280px;
+    min-width: 280px;
     aspect-ratio: 1;
   }
 
@@ -111,10 +113,6 @@
   }
 
   @media (max-width: 640px) {
-    .robot-container {
-      max-width: 280px;
-    }
-
     .story-text {
       font-size: 1.25rem;
       line-height: 1.75rem;
