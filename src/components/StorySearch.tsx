@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,12 +21,14 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
   const [storySearch, setStorySearch] = useState('');
   const [stories, setStories] = useState<Story[]>(availableStories);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<'fetching' | 'searching' | 'generating'>('fetching');
   const { language, t } = useLanguage();
   const { toast } = useToast();
 
   useEffect(() => {
     const loadStories = async () => {
       setIsLoading(true);
+      setLoadingAction('fetching');
 
       const stories = await fetchStories(
         language,
@@ -61,6 +64,7 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
 
     try {
       if (!searchTerm) {
+        setLoadingAction('generating');
         await generateAndTellStory('');
         return;
       }
@@ -71,8 +75,10 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
       ) : null;
 
       if (foundStory) {
+        setLoadingAction('searching');
         await tellExistingStory(foundStory);
       } else {
+        setLoadingAction('generating');
         await generateAndTellStory(storySearch);
       }
     } catch (error) {
@@ -133,6 +139,28 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
     lang: language === 'en' ? 'en-US' : 'fr-FR'
   });
 
+  const getButtonText = () => {
+    if (!isLoading) {
+      return t(!storySearch.trim()
+        ? 'Tell me a random story!'
+        : 'Tell me this story!',
+        !storySearch.trim()
+          ? 'Raconte-moi une histoire aléatoire !'
+          : 'Raconte-moi cette histoire!');
+    }
+
+    switch (loadingAction) {
+      case 'fetching':
+        return t('Loading stories...', 'Chargement des histoires...');
+      case 'searching': 
+        return t('Finding story...', 'Recherche de l\'histoire...');
+      case 'generating':
+        return t('Generating...', 'Génération en cours...');
+      default:
+        return t('Loading...', 'Chargement...');
+    }
+  };
+
   return (
     <div className="flex flex-col items-center mt-8 w-full">
       <p className="text-2xl mb-4 text-center">
@@ -174,14 +202,7 @@ const StorySearch: React.FC<StorySearchProps> = ({ onStorySelect, availableStori
         className="mt-4 bg-robot-primary hover:bg-robot-primary/80 text-lg py-6 px-8 rounded-full"
         disabled={isLoading}
       >
-        {isLoading
-          ? t('Generating...', 'Génération en cours...')
-          : t(!storySearch.trim()
-            ? 'Tell me a random story!'
-            : 'Tell me this story!',
-            !storySearch.trim()
-              ? 'Raconte-moi une histoire aléatoire !'
-              : 'Raconte-moi cette histoire!')}
+        {getButtonText()}
       </Button>
     </div>
   );
