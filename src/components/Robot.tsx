@@ -20,7 +20,7 @@ const emotionImages: Record<Emotion, string> = {
   disgusted: '/emotions/qt_disgusted_framed.gif',
   surprised: '/emotions/qt_confused_framed.gif',
   angry: '/emotions/qt_angry_framed.gif',
-  neutral: '/emotions/qt_neutral_framed.gif',
+  neutral: '/emotions/qt_neutral_state_blinking_framed.gif',
 };
 
 const Robot: React.FC<RobotProps> = ({
