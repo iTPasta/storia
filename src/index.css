@@ -50,8 +50,8 @@
   .robot-container {
     position: relative;
     margin: 0 auto;
-    width: 280px;
     min-width: 280px;
+    width: 100%;
     aspect-ratio: 1;
   }
 

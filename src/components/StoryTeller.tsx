@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import Robot from './Robot';
@@ -21,7 +20,6 @@ const StoryTeller: React.FC = () => {
   const { language } = useLanguage();
   const isMobile = useIsMobile();
 
-  // Speech synthesis setup
   const handleSpeechEnd = () => {
     console.log('Speech ended, moving to next segment');
     if (currentStory && currentStory.segments && currentSegmentIndex < currentStory.segments.length - 1) {
@@ -35,37 +33,31 @@ const StoryTeller: React.FC = () => {
     onEnd: handleSpeechEnd
   });
 
-  // Update emotion, text, and handle language changes when segment or language changes
   useEffect(() => {
     if (currentStory && currentStory.segments && currentStory.segments[currentSegmentIndex]) {
       const segment = currentStory.segments[currentSegmentIndex];
       setCurrentEmotion(segment.emotion as 'excited' | 'happy' | 'sad' | 'afraid' | 'disgusted' | 'confused' | 'angry' | 'neutral');
 
-      // Use the appropriate language text
       const textContent = language === 'en' ? segment.text : segment.text_fr;
       setCurrentText(textContent);
 
       if (isPlaying) {
         console.log('Speaking text:', textContent);
-        // Add a slight delay to ensure state updates have completed
         setTimeout(() => {
           speak(textContent);
         }, 100);
       } else {
-        // If not playing, cancel any ongoing speech
         cancel();
       }
     }
   }, [currentStory, currentSegmentIndex, isPlaying, language, speak, cancel]);
 
-  // Handle story selection
   const handleStorySelect = (story: Story) => {
     setCurrentStory(story);
     setCurrentSegmentIndex(0);
     setIsPlaying(true);
   };
 
-  // Playback controls
   const playStory = () => {
     setIsPlaying(true);
   };
@@ -91,14 +83,14 @@ const StoryTeller: React.FC = () => {
         </div>
       </div>
 
-      <div className={`w-full flex ${isMobile ? 'flex-col items-center' : 'flex-row'}`}>
+      <div className={`w-full flex ${isMobile ? 'flex-col items-center' : 'flex-row gap-8'}`}>
         {isMobile && (
-          <div className="mb-8 w-64 flex justify-center">
+          <div className="mb-8 w-full max-w-[500px]">
             <Robot emotion={currentEmotion} isPlaying={isPlaying} />
           </div>
         )}
         
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center min-w-[280px]">
           {currentStory ? (
             <StoryPlayer
               currentText={currentText}
@@ -116,12 +108,9 @@ const StoryTeller: React.FC = () => {
         </div>
         
         {!isMobile && (
-          <>
-            <div className="w-8"></div>
-            <div className="ml-4">
-              <Robot emotion={currentEmotion} isPlaying={isPlaying} />
-            </div>
-          </>
+          <div className="w-1/2 min-w-[280px]">
+            <Robot emotion={currentEmotion} isPlaying={isPlaying} />
+          </div>
         )}
       </div>
     </>
