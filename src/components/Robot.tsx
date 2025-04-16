@@ -42,7 +42,7 @@ const Robot: React.FC<RobotProps> = ({
       <div className="robot-face">
         {/* Make sure the image is displayed with proper dimensions */}
         <img
-          src={emotionImages[currentEmotion]}
+          src={isPlaying ? emotionImages[currentEmotion] : emotionImages['neutral']}
           alt={`Robot feeling ${currentEmotion}`}
           className={cn(
             "w-full h-full object-contain",
