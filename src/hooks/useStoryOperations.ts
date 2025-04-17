@@ -27,15 +27,15 @@ export const useStoryOperations = ({ availableStories, onStorySelect }: UseStory
     const stories = await fetchStories(
       language,
       (data) => {
-        toast({
-          title: t('Stories loaded successfully', 'Histoires chargées avec succès'),
-          description: t(`${data.length} stories available`, `${data.length} histoires disponibles`),
-        });
+        // toast({
+        //   title: t('Stories loaded successfully', 'Histoires chargées avec succès'),
+        //   description: t(`${data.length} stories available`, `${data.length} histoires disponibles`),
+        // });
       },
       () => {
         toast({
-          title: t('Error fetching stories', 'Erreur lors de la récupération des histoires'),
-          description: t('Using fallback sample stories', 'Utilisation des histoires d\'exemple'),
+          title: t('Error fetching sample stories', 'Erreur lors de la récupération des histoires d\'exemple'),
+          description: t('Using local sample stories', 'Utilisation des histoires d\'exemple locales'),
           variant: 'destructive'
         });
       }
