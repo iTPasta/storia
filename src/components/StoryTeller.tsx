@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import Robot from './Robot';
@@ -108,7 +109,7 @@ const StoryTeller: React.FC = () => {
         </div>
         
         {!isMobile && (
-          <div className="w-1/2 min-w-[280px]">
+          <div className="w-2/5 min-w-[280px]">
             <Robot emotion={currentEmotion} isPlaying={isPlaying} />
           </div>
         )}
