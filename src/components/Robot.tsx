@@ -14,10 +14,21 @@ interface RobotProps {
 
 // Define emotion images paths
 const getEmotionImagePath = (emotion: Emotion, useHeadOnly: boolean): string => {
+  const emotionFileNamesMap: Record<Emotion, string> = {
+    excited: 'qt_happy_blinking_framed',
+    happy: 'qt_happy_framed',
+    sad: 'qt_cry_framed',
+    afraid: 'qt_afraid_framed',
+    disgusted: 'qt_disgusted_framed',
+    confused: 'qt_confused_framed',
+    angry: 'qt_angry_framed',
+    neutral: 'qt_neutral_state_blinking_framed'
+  };
+  const emotionFileName = emotionFileNamesMap[emotion];
   const directory = useHeadOnly ? '/emotions_head/' : '/emotions_body/';
   const suffix = useHeadOnly ? '_head' : '';
-  
-  return `${directory}qt_${emotion}_framed${suffix}.gif`;
+
+  return `${directory}${emotionFileName}${suffix}.gif`;
 };
 
 const Robot: React.FC<RobotProps> = ({
@@ -46,10 +57,10 @@ const Robot: React.FC<RobotProps> = ({
 
     // Initial check
     checkWidth();
-    
+
     // Add resize listener
     window.addEventListener('resize', checkWidth);
-    
+
     return () => {
       window.removeEventListener('resize', checkWidth);
     };
@@ -58,14 +69,14 @@ const Robot: React.FC<RobotProps> = ({
   console.log(emotion, isPlaying, useHeadOnly ? 'head' : 'body');
 
   return (
-    <div 
-      ref={containerRef} 
+    <div
+      ref={containerRef}
       className={cn("robot-container relative", className)}
     >
       <div className="robot-face">
         <img
-          src={isPlaying 
-            ? getEmotionImagePath(currentEmotion, useHeadOnly) 
+          src={isPlaying
+            ? getEmotionImagePath(currentEmotion, useHeadOnly)
             : getEmotionImagePath('neutral', useHeadOnly)}
           alt={`Robot feeling ${currentEmotion}`}
           className={cn(
