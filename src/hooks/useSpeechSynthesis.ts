@@ -1,6 +1,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseSpeechSynthesisProps {
   onEnd?: () => void;
@@ -9,120 +10,60 @@ interface UseSpeechSynthesisProps {
 export const useSpeechSynthesis = ({
   onEnd,
 }: UseSpeechSynthesisProps = {}) => {
-  const speakRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const { language, selectedVoice, rate, pitch } = useLanguage();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { language, selectedVoice } = useLanguage();
 
-  // Set up the utterance with the correct language
-  const setupUtterance = useCallback(() => {
-    speakRef.current = new SpeechSynthesisUtterance();
-    speakRef.current.rate = rate;
-    speakRef.current.pitch = pitch;
-    speakRef.current.lang = language === 'en' ? 'en-US' : 'fr-FR';
-
+  useEffect(() => {
+    audioRef.current = new Audio();
     if (onEnd) {
-      speakRef.current.onend = onEnd;
-    }
-  }, [language, onEnd, rate, pitch]);
-
-  useEffect(() => {
-    // Initialize speech synthesis
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      setupUtterance();
-
-      // Make sure we clean up to prevent memory leaks
-      return () => {
-        if (speakRef.current) {
-          speakRef.current.onend = null;
-          window.speechSynthesis.cancel();
-        }
-      };
-    }
-  }, [setupUtterance]);
-
-  // Recreate the utterance when language changes
-  useEffect(() => {
-    if (speakRef.current) {
-      speakRef.current.lang = language === 'en' ? 'en-US' : 'fr-FR';
-      speakRef.current.rate = rate;
-      speakRef.current.pitch = pitch;
-    }
-  }, [language, rate, pitch]);
-
-  const speak = useCallback((text: string) => {
-    // Make sure speechSynthesis is available
-    if (typeof window === 'undefined' || !window.speechSynthesis) {
-      console.error('Speech synthesis not available');
-      return;
+      audioRef.current.onended = onEnd;
     }
 
-    // Ensure we cancel any ongoing speech first
-    window.speechSynthesis.cancel();
-
-    if (speakRef.current) {
-      speakRef.current.text = text;
-      speakRef.current.rate = rate;
-      speakRef.current.pitch = pitch;
-
-      // Try to find the selected voice or a suitable fallback
-      const voices = window.speechSynthesis.getVoices();
-      console.log('Available voices:', voices.map(voice => `${voice.lang}, ${voice.name}, ${voice.voiceURI}`));
-      
-      let voiceToUse: SpeechSynthesisVoice | undefined;
-      
-      // First try to use the selected voice if available
-      if (selectedVoice) {
-        voiceToUse = voices.find(voice => voice.voiceURI === selectedVoice);
-        if (voiceToUse) {
-          console.log(`Using selected voice: ${voiceToUse.name}`);
-        }
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.onended = null;
+        audioRef.current = null;
       }
+    };
+  }, [onEnd]);
 
-      // If no selected voice or not found, use language-based fallback
-      if (!voiceToUse) {
-        const languageCode = language === 'en' ? 'en' : 'fr';
-        
-        // Try to find a voice with exact language match
-        const matchingVoices = voices.filter(voice =>
-          voice.lang.startsWith(languageCode)
-        );
-
-        if (matchingVoices.length > 0) {
-          voiceToUse = matchingVoices[0];
-          console.log(`Using language-matched voice: ${voiceToUse.name}`);
-        } else {
-          // If no matching voice, use any available voice
-          voiceToUse = voices[0];
-          console.log(`Using fallback voice: ${voiceToUse?.name}`);
+  const speak = useCallback(async (text: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: { 
+          text,
+          voice: selectedVoice || 'alloy'
         }
-      }
+      });
 
-      // If we found a voice, use it
-      if (voiceToUse) {
-        speakRef.current.voice = voiceToUse;
-      }
+      if (error) throw error;
+      if (!data?.audioContent) throw new Error('No audio content received');
 
-      // Let's add a delay to make sure the speech synthesis is ready
-      setTimeout(() => {
-        window.speechSynthesis.speak(speakRef.current);
-      }, 100);
+      if (audioRef.current) {
+        audioRef.current.src = `data:audio/mp3;base64,${data.audioContent}`;
+        await audioRef.current.play();
+      }
+    } catch (error) {
+      console.error('Error in speech synthesis:', error);
     }
-  }, [language, selectedVoice, rate, pitch]);
+  }, [selectedVoice]);
 
   const pause = useCallback(() => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.pause();
+    if (audioRef.current) {
+      audioRef.current.pause();
     }
   }, []);
 
   const resume = useCallback(() => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.resume();
+    if (audioRef.current) {
+      audioRef.current.play();
     }
   }, []);
 
   const cancel = useCallback(() => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
     }
   }, []);
 
