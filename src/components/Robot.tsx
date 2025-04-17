@@ -37,8 +37,6 @@ const Robot: React.FC<RobotProps> = ({
   className
 }) => {
   const [currentEmotion, setCurrentEmotion] = useState<Emotion>(emotion);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [useHeadOnly, setUseHeadOnly] = useState(false);
   const isMobile = useIsMobile();
 
   // Update emotion when the prop changes
@@ -46,38 +44,17 @@ const Robot: React.FC<RobotProps> = ({
     setCurrentEmotion(emotion);
   }, [emotion]);
 
-  // Check container width to determine which image type to use
-  useEffect(() => {
-    const checkWidth = () => {
-      if (containerRef.current) {
-        const containerWidth = containerRef.current.clientWidth;
-        setUseHeadOnly(containerWidth < 280);
-      }
-    };
-
-    // Initial check
-    checkWidth();
-
-    // Add resize listener
-    window.addEventListener('resize', checkWidth);
-
-    return () => {
-      window.removeEventListener('resize', checkWidth);
-    };
-  }, []);
-
-  console.log(emotion, isPlaying, useHeadOnly ? 'head' : 'body');
+  console.log(emotion, isPlaying, isMobile ? 'head' : 'body');
 
   return (
     <div
-      ref={containerRef}
       className={cn("robot-container relative", className)}
     >
       <div className="robot-face">
         <img
           src={isPlaying
-            ? getEmotionImagePath(currentEmotion, useHeadOnly)
-            : getEmotionImagePath('neutral', useHeadOnly)}
+            ? getEmotionImagePath(currentEmotion, isMobile)
+            : getEmotionImagePath('neutral', isMobile)}
           alt={`Robot feeling ${currentEmotion}`}
           className={cn(
             "w-full h-full object-contain",
