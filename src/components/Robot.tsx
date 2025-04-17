@@ -1,6 +1,7 @@
 
-import React, { useEffect, useState } from 'react';
-import { cn } from '@/lib/utils'; // Ensure this utility function is correctly implemented or replace it with a classNames library.
+import React, { useEffect, useState, useRef } from 'react';
+import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Emotion types
 export type Emotion = 'excited' | 'happy' | 'sad' | 'afraid' | 'disgusted' | 'confused' | 'angry' | 'neutral';
@@ -11,16 +12,12 @@ interface RobotProps {
   className?: string;
 }
 
-// Define emotion images
-const emotionImages: Record<Emotion, string> = {
-  excited: '/emotions/qt_happy_blinking_framed.gif',
-  happy: '/emotions/qt_happy_framed.gif',
-  sad: '/emotions/qt_cry_framed.gif',
-  afraid: '/emotions/qt_afraid_framed.gif',
-  disgusted: '/emotions/qt_disgusted_framed.gif',
-  confused: '/emotions/qt_confused_framed.gif',
-  angry: '/emotions/qt_angry_framed.gif',
-  neutral: '/emotions/qt_neutral_state_blinking_framed.gif',
+// Define emotion images paths
+const getEmotionImagePath = (emotion: Emotion, useHeadOnly: boolean): string => {
+  const directory = useHeadOnly ? '/emotions_head/' : '/emotions_body/';
+  const suffix = useHeadOnly ? '_head' : '';
+  
+  return `${directory}qt_${emotion}_framed${suffix}.gif`;
 };
 
 const Robot: React.FC<RobotProps> = ({
@@ -29,20 +26,47 @@ const Robot: React.FC<RobotProps> = ({
   className
 }) => {
   const [currentEmotion, setCurrentEmotion] = useState<Emotion>(emotion);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [useHeadOnly, setUseHeadOnly] = useState(false);
+  const isMobile = useIsMobile();
 
   // Update emotion when the prop changes
   useEffect(() => {
     setCurrentEmotion(emotion);
   }, [emotion]);
 
-  console.log(emotion, isPlaying);
+  // Check container width to determine which image type to use
+  useEffect(() => {
+    const checkWidth = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.clientWidth;
+        setUseHeadOnly(containerWidth < 280);
+      }
+    };
+
+    // Initial check
+    checkWidth();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkWidth);
+    
+    return () => {
+      window.removeEventListener('resize', checkWidth);
+    };
+  }, []);
+
+  console.log(emotion, isPlaying, useHeadOnly ? 'head' : 'body');
 
   return (
-    <div className={cn("robot-container relative", className)}>
+    <div 
+      ref={containerRef} 
+      className={cn("robot-container relative", className)}
+    >
       <div className="robot-face">
-        {/* Make sure the image is displayed with proper dimensions */}
         <img
-          src={isPlaying ? emotionImages[currentEmotion] : emotionImages['neutral']}
+          src={isPlaying 
+            ? getEmotionImagePath(currentEmotion, useHeadOnly) 
+            : getEmotionImagePath('neutral', useHeadOnly)}
           alt={`Robot feeling ${currentEmotion}`}
           className={cn(
             "w-full h-full object-contain",
