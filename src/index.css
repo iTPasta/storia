@@ -55,6 +55,13 @@
     aspect-ratio: 1;
   }
 
+  /* Remove fixed aspect ratio for mobile head-only mode */
+  @media (max-width: 768px) {
+    .robot-container {
+      aspect-ratio: auto;
+    }
+  }
+
   .robot-frame {
     width: 100%;
     height: 100%;

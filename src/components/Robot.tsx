@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -48,7 +48,11 @@ const Robot: React.FC<RobotProps> = ({
 
   return (
     <div
-      className={cn("robot-container relative", className)}
+      className={cn(
+        "robot-container relative",
+        isMobile && "mb-0 h-auto", // Remove bottom margin in mobile view
+        className
+      )}
     >
       <div className="robot-face">
         <img

@@ -86,7 +86,7 @@ const StoryTeller: React.FC = () => {
 
       <div className={`w-full flex ${isMobile ? 'flex-col items-center' : 'flex-row gap-8'}`}>
         {isMobile && (
-          <div className="mb-8 w-full max-w-[500px]">
+          <div className="w-full max-w-[500px] mb-2"> {/* Reduced margin bottom from mb-8 to mb-2 */}
             <Robot emotion={currentEmotion} isPlaying={isPlaying} />
           </div>
         )}
