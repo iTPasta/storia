@@ -45,7 +45,7 @@ npm install
 npm run dev
 ```
 
-6. Pour le déploiement en production :
+6. Pour le déploiement en production (nécessite l'ouverture du port 443 et un certificat HTTPS valide) :
 ```bash
 npm run build
 npm run start
@@ -98,7 +98,7 @@ npm install
 npm run dev
 ```
 
-6. For production deployment:
+6. For production deployment (needs the port 443 to be opened and a valid HTTPS certificate):
 ```bash
 npm run build
 npm run start
