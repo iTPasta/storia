@@ -7,11 +7,9 @@ interface UseSpeechSynthesisProps {
   onEnd?: () => void;
 }
 
-export const useSpeechSynthesis = ({
-  onEnd,
-}: UseSpeechSynthesisProps = {}) => {
+export const useSpeechSynthesis = ({ onEnd }: UseSpeechSynthesisProps = {}) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const { language, selectedVoice, rate, pitch } = useLanguage();
+  const { selectedVoice, rate } = useLanguage();
 
   useEffect(() => {
     audioRef.current = new Audio();
@@ -29,13 +27,10 @@ export const useSpeechSynthesis = ({
 
   const speak = useCallback(async (text: string) => {
     try {
-      // Ensure we're sending a valid OpenAI voice ID
-      const openAiVoice = selectedVoice || 'alloy';
-      
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
         body: { 
           text,
-          voice: openAiVoice
+          voice: selectedVoice || 'alloy'
         }
       });
 
@@ -43,7 +38,6 @@ export const useSpeechSynthesis = ({
       if (!data?.audioContent) throw new Error('No audio content received');
 
       if (audioRef.current) {
-        // Set playback rate according to the user's preference
         audioRef.current.playbackRate = rate;
         audioRef.current.src = `data:audio/mp3;base64,${data.audioContent}`;
         await audioRef.current.play();

@@ -9,21 +9,21 @@ interface VoiceSelectorProps {
   disabled?: boolean;
 }
 
-// Available OpenAI voices
+// Available OpenAI voices with descriptions
 const OPENAI_VOICES = [
-  { id: 'alloy', name: 'Alloy' },
-  { id: 'echo', name: 'Echo' },
-  { id: 'fable', name: 'Fable' },
-  { id: 'onyx', name: 'Onyx' },
-  { id: 'nova', name: 'Nova' },
-  { id: 'shimmer', name: 'Shimmer' },
-  { id: 'ash', name: 'Ash' },
-  { id: 'sage', name: 'Sage' },
-  { id: 'coral', name: 'Coral' }
+  { id: 'alloy', name: 'Alloy', description: 'Versatile, balanced voice' },
+  { id: 'echo', name: 'Echo', description: 'Warm, natural voice' },
+  { id: 'fable', name: 'Fable', description: 'British-accented, gentle voice' },
+  { id: 'onyx', name: 'Onyx', description: 'Deep, resonant voice' },
+  { id: 'nova', name: 'Nova', description: 'Energetic, youthful voice' },
+  { id: 'shimmer', name: 'Shimmer', description: 'Clear, melodic voice' },
+  { id: 'ash', name: 'Ash', description: 'Approachable, professional voice' },
+  { id: 'sage', name: 'Sage', description: 'Mature, thoughtful voice' },
+  { id: 'coral', name: 'Coral', description: 'Cheerful, bright voice' }
 ];
 
 const VoiceSelector: React.FC<VoiceSelectorProps> = ({ disabled = false }) => {
-  const { language, t, selectedVoice, setSelectedVoice, rate, setRate, pitch, setPitch } = useLanguage();
+  const { language, t, selectedVoice, setSelectedVoice, rate, setRate } = useLanguage();
 
   return (
     <div className="space-y-4">
@@ -40,7 +40,7 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ disabled = false }) => {
           <SelectContent>
             {OPENAI_VOICES.map((voice) => (
               <SelectItem key={voice.id} value={voice.id}>
-                {voice.name}
+                {voice.name} - {voice.description}
               </SelectItem>
             ))}
           </SelectContent>
@@ -51,7 +51,7 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ disabled = false }) => {
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <Label htmlFor="rate-slider">{t('Speech Rate', 'Vitesse de parole')}</Label>
-          <span className="text-sm text-muted-foreground">{rate.toFixed(1)}</span>
+          <span className="text-sm text-muted-foreground">{rate.toFixed(1)}x</span>
         </div>
         <Slider
           id="rate-slider"
@@ -60,24 +60,6 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ disabled = false }) => {
           step={0.1}
           value={[rate]}
           onValueChange={(values) => setRate(values[0])}
-          disabled={disabled}
-          className="py-2"
-        />
-      </div>
-
-      {/* Pitch Slider */}
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <Label htmlFor="pitch-slider">{t('Speech Pitch', 'Hauteur de voix')}</Label>
-          <span className="text-sm text-muted-foreground">{pitch.toFixed(1)}</span>
-        </div>
-        <Slider
-          id="pitch-slider"
-          min={0.1}
-          max={2.0}
-          step={0.1}
-          value={[pitch]}
-          onValueChange={(values) => setPitch(values[0])}
           disabled={disabled}
           className="py-2"
         />
