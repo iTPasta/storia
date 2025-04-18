@@ -11,11 +11,13 @@ interface LanguageContextType {
   setSelectedVoice: (voiceURI: string) => void;
 }
 
+const DEFAULT_VOICE = 'nova';
+
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('fr');
-  const [selectedVoice, setSelectedVoice] = useState<string | null>('nova'); // Changed default to nova
+  const [selectedVoice, setSelectedVoice] = useState<string | null>(DEFAULT_VOICE);
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem('story-language');
@@ -29,6 +31,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const savedVoice = localStorage.getItem('story-voice');
     if (savedVoice) {
       setSelectedVoice(savedVoice);
+    } else {
+      setSelectedVoice(DEFAULT_VOICE);
+      localStorage.setItem('story-voice', DEFAULT_VOICE);
     }
   }, []);
 
