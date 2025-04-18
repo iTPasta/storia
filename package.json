@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "npm run preview",
+    "start": "vite preview --port 443",
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
