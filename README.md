@@ -1,51 +1,76 @@
 
 # StorIA - Interactive Storytelling Robot for Kids
 
-StorIA is a web application featuring a cute robot that tells stories to children aged 5-7 years old. The robot displays different facial expressions that match the emotional tone of each story segment.
+## English
 
-## Project Setup
+### Description
+StorIA is an interactive web application featuring a friendly robot that tells stories to children aged 5-7 years old. The robot displays emotions through facial expressions that match the emotional tone of each story segment, creating an engaging and immersive storytelling experience.
 
-1. Clone the repository
-2. Run `npm install` to install dependencies
-3. Run `npm run dev` to start the development server
-
-## Adding Robot Assets
-
-### Robot Frame
-Add the robot frame image to the public folder:
-- Create a file named `robot_frame.png` in the `/public` folder
-- The robot frame should be a PNG image with a transparent center where the robot's face will appear
-
-### Emotion GIFs
-Add the emotion GIF files to the `/public/emotions/` folder:
-- Create a folder named `emotions` in the `/public` directory
-- Add the following GIF files for different emotions:
-  - `happy.gif`
-  - `sad.gif`
-  - `surprised.gif`
-  - `angry.gif`
-  - `neutral.gif`
-
-The emotion GIFs should be designed to fit within the robot's face area, with an offset of 50 pixels from all sides of the frame.
-
-## Features
-
-- Robot with dynamic facial expressions
-- Text-to-speech narration of stories
-- Voice recognition for story selection
-- Pause and stop controls for the storytelling
+Key Features:
+- Interactive robot with dynamic facial expressions
+- AI-powered story generation
+- Text-to-speech narration using high-quality voices
+- Support for both English and French languages
 - Kid-friendly interface
+- Voice recognition for story selection
 
-## Adding More Stories
+### How to Deploy
 
-To add more stories, edit the `SAMPLE_STORIES` array in `src/components/StoryTeller.tsx`. Each story should have:
+1. Clone the repository:
+```bash
+git clone [repository-url]
+```
 
-- A unique ID
-- A title
-- An array of segments, each with:
-  - Text content
-  - Associated emotion (happy, sad, surprised, angry, or neutral)
+2. Install dependencies:
+```bash
+npm install
+```
 
-## Browser Compatibility
+3. Start the development server:
+```bash
+npm run dev
+```
 
-This application uses the Web Speech API for text-to-speech and speech recognition. These features may not be supported in all browsers. For best results, use Chrome or Edge.
+4. For production deployment:
+```bash
+npm run build
+npm run start
+```
+
+---
+
+## Français
+
+### Description
+StorIA est une application web interactive mettant en scène un robot sympathique qui raconte des histoires aux enfants de 5 à 7 ans. Le robot affiche des émotions à travers des expressions faciales qui correspondent au ton émotionnel de chaque segment de l'histoire, créant ainsi une expérience de narration immersive et captivante.
+
+Fonctionnalités principales :
+- Robot interactif avec expressions faciales dynamiques
+- Génération d'histoires propulsée par l'IA
+- Narration text-to-speech avec des voix de haute qualité
+- Support des langues anglaise et française
+- Interface adaptée aux enfants
+- Reconnaissance vocale pour la sélection des histoires
+
+### Comment Déployer
+
+1. Cloner le dépôt :
+```bash
+git clone [url-du-depot]
+```
+
+2. Installer les dépendances :
+```bash
+npm install
+```
+
+3. Démarrer le serveur de développement :
+```bash
+npm run dev
+```
+
+4. Pour le déploiement en production :
+```bash
+npm run build
+npm run start
+```
