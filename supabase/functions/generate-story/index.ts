@@ -40,8 +40,6 @@ serve(async (req) => {
       throw new Error('OpenAI API key not found');
     }
 
-    console.log(`Generating story with prompt: ${prompt}`);
-
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {

@@ -44,8 +44,6 @@ const Robot: React.FC<RobotProps> = ({
     setCurrentEmotion(emotion);
   }, [emotion]);
 
-  console.log(emotion, isPlaying, isMobile ? 'head' : 'body');
-
   return (
     <div
       className={cn(

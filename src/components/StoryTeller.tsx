@@ -22,7 +22,6 @@ const StoryTeller: React.FC = () => {
   const isMobile = useIsMobile();
 
   const handleSpeechEnd = () => {
-    console.log('Speech ended, moving to next segment');
     if (currentStory && currentStory.segments && currentSegmentIndex < currentStory.segments.length - 1) {
       setCurrentSegmentIndex(prev => prev + 1);
     } else {
@@ -43,7 +42,6 @@ const StoryTeller: React.FC = () => {
       setCurrentText(textContent);
 
       if (isPlaying) {
-        console.log('Speaking text:', textContent);
         setTimeout(() => {
           speak(textContent);
         }, 100);
@@ -90,7 +88,7 @@ const StoryTeller: React.FC = () => {
             <Robot emotion={currentEmotion} isPlaying={isPlaying} />
           </div>
         )}
-        
+
         <div className="flex-1 flex items-center justify-center min-w-[280px]">
           {currentStory ? (
             <StoryPlayer
@@ -107,7 +105,7 @@ const StoryTeller: React.FC = () => {
             />
           )}
         </div>
-        
+
         {!isMobile && (
           <div className="w-2/5 min-w-[280px]">
             <Robot emotion={currentEmotion} isPlaying={isPlaying} />

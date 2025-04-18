@@ -25,7 +25,6 @@ serve(async (req) => {
 
     // Validate and use a default voice if the provided voice is invalid
     const validVoice = VALID_VOICES.includes(voice) ? voice : 'nova';
-    console.log(`Using voice: ${validVoice} (requested: ${voice})`);
 
     const response = await fetch('https://api.openai.com/v1/audio/speech', {
       method: 'POST',
@@ -47,17 +46,17 @@ serve(async (req) => {
     }
 
     const arrayBuffer = await response.arrayBuffer()
-    
+
     // Convert arrayBuffer to base64 without crashing the stack
     const uint8Array = new Uint8Array(arrayBuffer);
     let binaryString = '';
     const chunkSize = 1024;
-    
+
     for (let i = 0; i < uint8Array.length; i += chunkSize) {
       const chunk = uint8Array.slice(i, i + chunkSize);
       binaryString += String.fromCharCode.apply(null, chunk);
     }
-    
+
     const base64Audio = btoa(binaryString);
 
     return new Response(
@@ -68,7 +67,7 @@ serve(async (req) => {
     console.error('Error in text-to-speech function:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
+      {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
