@@ -16,7 +16,8 @@ serve(async (req) => {
   }
 
   try {
-    const { text, voice } = await req.json()
+    const requestData = await req.json();
+    const { text, voice } = requestData;
 
     if (!text) {
       throw new Error('Text is required')
@@ -46,7 +47,18 @@ serve(async (req) => {
     }
 
     const arrayBuffer = await response.arrayBuffer()
-    const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))
+    
+    // Convert arrayBuffer to base64 without crashing the stack
+    const uint8Array = new Uint8Array(arrayBuffer);
+    let binaryString = '';
+    const chunkSize = 1024;
+    
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.slice(i, i + chunkSize);
+      binaryString += String.fromCharCode.apply(null, chunk);
+    }
+    
+    const base64Audio = btoa(binaryString);
 
     return new Response(
       JSON.stringify({ audioContent: base64Audio }),
