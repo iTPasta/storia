@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +8,7 @@ interface UseSpeechSynthesisProps {
 
 export const useSpeechSynthesis = ({ onEnd }: UseSpeechSynthesisProps = {}) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const { selectedVoice, rate } = useLanguage();
+  const { selectedVoice } = useLanguage();
 
   useEffect(() => {
     audioRef.current = new Audio();
@@ -30,7 +29,7 @@ export const useSpeechSynthesis = ({ onEnd }: UseSpeechSynthesisProps = {}) => {
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
         body: { 
           text,
-          voice: selectedVoice || 'alloy'
+          voice: selectedVoice || 'nova'
         }
       });
 
@@ -38,14 +37,13 @@ export const useSpeechSynthesis = ({ onEnd }: UseSpeechSynthesisProps = {}) => {
       if (!data?.audioContent) throw new Error('No audio content received');
 
       if (audioRef.current) {
-        audioRef.current.playbackRate = rate;
         audioRef.current.src = `data:audio/mp3;base64,${data.audioContent}`;
         await audioRef.current.play();
       }
     } catch (error) {
       console.error('Error in speech synthesis:', error);
     }
-  }, [selectedVoice, rate]);
+  }, [selectedVoice]);
 
   const pause = useCallback(() => {
     if (audioRef.current) {

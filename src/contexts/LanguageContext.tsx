@@ -9,16 +9,13 @@ interface LanguageContextType {
   t: (en: string, fr: string) => string;
   selectedVoice: string | null;
   setSelectedVoice: (voiceURI: string) => void;
-  rate: number;
-  setRate: (rate: number) => void;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('fr');
-  const [selectedVoice, setSelectedVoice] = useState<string | null>('alloy'); // Default to alloy voice
-  const [rate, setRate] = useState<number>(1.0); // Default speech rate
+  const [selectedVoice, setSelectedVoice] = useState<string | null>('nova'); // Changed default to nova
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem('story-language');
@@ -33,11 +30,6 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (savedVoice) {
       setSelectedVoice(savedVoice);
     }
-
-    const savedRate = localStorage.getItem('speech-rate');
-    if (savedRate) {
-      setRate(parseFloat(savedRate));
-    }
   }, []);
 
   const t = (en: string, fr: string): string => {
@@ -49,11 +41,6 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem('story-voice', voiceURI);
   };
 
-  const handleSetRate = (newRate: number) => {
-    setRate(newRate);
-    localStorage.setItem('speech-rate', newRate.toString());
-  };
-
   return (
     <LanguageContext.Provider value={{
       language,
@@ -61,8 +48,6 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       t,
       selectedVoice,
       setSelectedVoice: handleSetSelectedVoice,
-      rate,
-      setRate: handleSetRate,
     }}>
       {children}
     </LanguageContext.Provider>

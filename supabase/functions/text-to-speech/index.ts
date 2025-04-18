@@ -24,7 +24,7 @@ serve(async (req) => {
     }
 
     // Validate and use a default voice if the provided voice is invalid
-    const validVoice = VALID_VOICES.includes(voice) ? voice : 'alloy';
+    const validVoice = VALID_VOICES.includes(voice) ? voice : 'nova';
     console.log(`Using voice: ${validVoice} (requested: ${voice})`);
 
     const response = await fetch('https://api.openai.com/v1/audio/speech', {
@@ -34,7 +34,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'tts-1',
+        model: 'gpt-4o-mini-tts',
         input: text,
         voice: validVoice,
         response_format: 'mp3',
