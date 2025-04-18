@@ -7,6 +7,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Valid OpenAI TTS voices
+const VALID_VOICES = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer', 'ash', 'sage', 'coral'];
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -19,6 +22,10 @@ serve(async (req) => {
       throw new Error('Text is required')
     }
 
+    // Validate and use a default voice if the provided voice is invalid
+    const validVoice = VALID_VOICES.includes(voice) ? voice : 'alloy';
+    console.log(`Using voice: ${validVoice} (requested: ${voice})`);
+
     const response = await fetch('https://api.openai.com/v1/audio/speech', {
       method: 'POST',
       headers: {
@@ -28,7 +35,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'tts-1',
         input: text,
-        voice: voice || 'alloy',
+        voice: validVoice,
         response_format: 'mp3',
       }),
     })

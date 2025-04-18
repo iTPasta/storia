@@ -16,7 +16,10 @@ const OPENAI_VOICES = [
   { id: 'fable', name: 'Fable' },
   { id: 'onyx', name: 'Onyx' },
   { id: 'nova', name: 'Nova' },
-  { id: 'shimmer', name: 'Shimmer' }
+  { id: 'shimmer', name: 'Shimmer' },
+  { id: 'ash', name: 'Ash' },
+  { id: 'sage', name: 'Sage' },
+  { id: 'coral', name: 'Coral' }
 ];
 
 const VoiceSelector: React.FC<VoiceSelectorProps> = ({ disabled = false }) => {
