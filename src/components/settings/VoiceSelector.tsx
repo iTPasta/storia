@@ -13,8 +13,8 @@ interface VoiceSelectorProps {
 const getVoiceDescription = (voiceId: string, language: 'en' | 'fr') => {
   const descriptions: Record<string, { en: string; fr: string }> = {
     'nova': {
-      en: 'Energetic, youthful voice - Perfect for children\'s stories',
-      fr: 'Voix énergique et jeune - Parfaite pour les histoires d\'enfants'
+      en: 'Energetic, youthful voice',
+      fr: 'Voix énergique et jeune'
     },
     'alloy': {
       en: 'Versatile, balanced voice',
@@ -92,8 +92,8 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ disabled = false }) => {
                     </Badge>
                   )}
                 </div>
-                <span className="text-sm text-muted-foreground ml-2">
-                  - {getVoiceDescription(voiceId, language)}
+                <span className="text-sm text-muted-foreground">
+                  {getVoiceDescription(voiceId, language)}
                 </span>
               </SelectItem>
             ))}
