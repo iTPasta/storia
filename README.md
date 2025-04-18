@@ -45,11 +45,15 @@ npm install
 npm run dev
 ```
 
-1. Pour le déploiement en production :
+6. Pour le déploiement en production :
 ```bash
 npm run build
 npm run start
 ```
+
+### Mot de passe des paramètres
+
+Pour éviter que les enfants n'ouvrent les paramètres, un mot de passe est nécessaire afin d'y accéder, le voici : qtrobot2025
 
 ---
 
@@ -98,8 +102,12 @@ npm install
 npm run dev
 ```
 
-1. For production deployment:
+6. For production deployment:
 ```bash
 npm run build
 npm run start
 ```
+
+### Password of parameters
+
+To avoid kids from editing the parameters, you need to enter a password to access them, here it is: qtrobot2025
