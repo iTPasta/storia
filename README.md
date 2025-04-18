@@ -51,8 +51,6 @@ npm run build
 npm run start
 ```
 
-7. Quand le serveur est démarré, le projet est disponible à l'adresse http://localhost:8080/
-
 ---
 
 ## English : StorIA - Interactive Storytelling Robot for Kids
@@ -105,5 +103,3 @@ npm run dev
 npm run build
 npm run start
 ```
-
-7. When the server is started, the project is available at http://localhost:8080/
