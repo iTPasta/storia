@@ -22,9 +22,6 @@ const StoryInput: React.FC<StoryInputProps> = ({
 
   const handleSearchResult = (transcript: string) => {
     onSearchChange(transcript);
-    setTimeout(() => {
-      onSubmit();
-    }, 1000);
   };
 
   const { isListening, startListening } = useSpeechRecognition({
